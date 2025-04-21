@@ -1,0 +1,14 @@
+{
+  "name": "quick-starter",
+  "version": "1.0.0",
+  "scripts": {
+    "in": "npm i && npm in --prefix client && npm in --prefix api",
+    "up": "npm update && npm up --prefix client && npm up --prefix api",
+    "dev": "concurrently --names \"client,api\" \"npm run dev --prefix client\" \"npm run dev --prefix api\"",
+    "setup": "npm run in && npm run dev",
+    "upgrade": "npm run up && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
