@@ -2,14 +2,16 @@
 node_modules
 client/dist
 
-api/public/team-logo/*
-api/public/tmp/*
-api/public/user/*
+api/public/product-certificates/*
+api/public/product-images/*
+api/public/product-manuals/*
+api/public/user-images/*
 
 # allow all the folders themselves to be tracked
-!api/public/team-logo/.gitkeep
-!api/public/tmp/.gitkeep
-!api/public/user/.gitkeep
+!api/public/product-certificates/.gitkeep
+!api/public/product-images/.gitkeep
+!api/public/product-manuals/.gitkeep
+!api/public/user-images/.gitkeep
 
 # env files
 .env
