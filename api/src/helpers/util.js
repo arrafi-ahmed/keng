@@ -1,6 +1,7 @@
 const fs = require("fs").promises;
 const fsSync = require("fs");
 const path = require("path");
+const {fileConfig} = require("./fileFields");
 const { API_BASE_URL, VUE_BASE_URL, ANDROID_BASE_URL } = process.env;
 
 const appInfo = { name: "QuickStarter", version: 1.0 };
@@ -56,28 +57,22 @@ const moveImage = (sourcePath, destinationPath) => {
   });
 };
 
-const dirMap = {
-  tmp: path.join(__dirname, "..", "..", "public", "tmp"),
-  user: path.join(__dirname, "..", "..", "public", "user"),
-  product: path.join(__dirname, "..", "..", "public", "product"),
-};
+const generateFilename = ({prefix, ext}) => {
+  return `${prefix || "file"}-${Date.now()}-${Math.round(Math.random() * 1e5)}${ext}`;
+}
 
 const getPrefix = (filename) => {
   return filename.split("-")[0];
 };
 
-const getDirPath = (prefix) => {
-  return dirMap[prefix];
-};
-
 const getFilePath = (filename, prefix) => {
   const calcPrefix = prefix || getPrefix(filename);
-  return path.join(dirMap[calcPrefix], filename);
+  return path.join(fileConfig[calcPrefix].dir, filename);
 };
 
-const removeImages = async (imageArr) => {
-  imageArr.map((image) => {
-    const filePath = getFilePath(image);
+const removeFiles = async (fileArr) => {
+  fileArr.map((removingFile) => {
+    const filePath = getFilePath(removingFile);
     if (filePath) {
       return fs.unlink(filePath);
     } else {
@@ -109,15 +104,14 @@ module.exports = {
   API_BASE_URL,
   VUE_BASE_URL,
   ANDROID_BASE_URL,
-  dirMap,
   appInfo,
   getCurrencySymbol,
   generatePassResetContent,
   moveImage,
   getPrefix,
-  getDirPath,
+  generateFilename,
   getFilePath,
-  removeImages,
+  removeFiles,
   formatDate,
   removeOtherParams,
   ifSudo,

@@ -28,7 +28,8 @@ CREATE TABLE product_identities
     identity_type SMALLINT CHECK (identity_type IN (10)), -- 10=serial
     product_id    INT REFERENCES products (id) ON DELETE CASCADE,
     created_at    TIMESTAMP DEFAULT NOW(),
-    updated_at    TIMESTAMP DEFAULT NOW()
+    updated_at    TIMESTAMP DEFAULT NOW(),
+    UNIQUE (identity_type, identity_no)
 );
 
 CREATE TABLE product_files
@@ -47,7 +48,8 @@ CREATE TABLE product_images
     filename   TEXT NOT NULL,
     sort_order SMALLINT,
     product_id INT REFERENCES products (id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE product_warranties

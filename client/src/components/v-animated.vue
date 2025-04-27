@@ -22,7 +22,10 @@ onMounted(() => {
 <template>
   <div ref="target">
     <transition :name="animationType">
-      <div v-appear="animate" class="animated-component">
+      <div
+        v-appear="animate"
+        class="animated-component"
+      >
         <slot />
       </div>
     </transition>

@@ -3,7 +3,7 @@ import Logo from "@/components/Logo.vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { computed, ref } from "vue";
-import { getClientPublicImgUrl, getToLink } from "@/others/util";
+import { getClientPublicImageUrl, getToLink } from "@/others/util";
 import { useDisplay } from "vuetify";
 import UserAvatar from "@/components/UserAvatar.vue";
 
@@ -20,8 +20,6 @@ const isSudo = computed(() => store.getters["user/isSudo"]);
 const menuItemsSudo = [{ title: "Products", to: { name: "products" } }];
 
 const menuItems = computed(() => {
-  console.log(router.getRoutes().map((r) => r.name));
-
   let items = [{ title: "Home", to: calcHome.value }];
   if (isSudo.value) {
     items = items.concat(menuItemsSudo);
@@ -48,7 +46,7 @@ const getGreetings = computed(() => {
     flat
   >
     <logo
-      :img-src="getClientPublicImgUrl('logo.png')"
+      :img-src="getClientPublicImageUrl('logo.png')"
       :title="true"
       :width="40"
       container-class="clickable"

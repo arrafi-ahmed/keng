@@ -1,6 +1,6 @@
 const cors = require("cors");
 
-const excludedUrls = ["/api/user/acceptInvite"];
+const excludedUrls = [];
 
 const customCors = (req, res, next) => {
   const baseUrl = process.env.VUE_BASE_URL;

@@ -30,4 +30,15 @@ router.get("/getProductsByUserId", auth, (req, res, next) => {
     .catch((err) => next(err));
 });
 
+router.get("/getProduct", auth, (req, res, next) => {
+  productService
+    .getProduct({
+      query: { ...req.query },
+    })
+    .then((result) => {
+      res.status(200).json(new ApiResponse(null, result));
+    })
+    .catch((err) => next(err));
+});
+
 module.exports = router;

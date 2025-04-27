@@ -3,12 +3,16 @@ import $axios from "@/plugins/axios";
 export const namespaced = true;
 
 export const state = {
+  product: {},
   products: [],
 };
 
 export const mutations = {
   setProducts(state, payload) {
     state.products = payload;
+  },
+  setProduct(state, payload) {
+    state.product = payload;
   },
   addProduct(state, payload) {
     state.products.unshift(payload);
@@ -37,6 +41,16 @@ export const actions = {
     // const actionType = request.id ? "edit" : "add";
     // const actionName = `${actionType}Product`;
     // commit(actionName, response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setProduct({ commit }, request) {
+    const response = await $axios.get("/api/product/getProduct", {
+      params: {
+        productId: request.productId,
+      },
+    });
+    commit("setProduct", response.data?.payload);
     return response.data?.payload;
   },
 

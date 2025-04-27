@@ -63,18 +63,24 @@ export const formatDateTime = (inputDateTime) => {
   return `${formattedDate} ${hours}:${minutes}`;
 };
 
-export const getClientPublicImgUrl = (imageName) =>
+export const getClientPublicImageUrl = (imageName) =>
   imageName ? `/img/${imageName}` : null;
 
-export const getApiPublicImgUrl = (imageName, type) =>
+export const getApiPublicFileUrl = (fileName, filePrefix) =>
   isProd
-    ? `${apiBaseUrl}/api/${type}/${imageName}`
-    : `${apiBaseUrl}/${type}/${imageName}`;
+    ? `${apiBaseUrl}/api/${filePrefix}/${fileName}`
+    : `${apiBaseUrl}/${filePrefix}/${fileName}`;
 
 export const getUserImageUrl = (imageName) => {
   return imageName === "null" || !imageName
-    ? getClientPublicImgUrl("default-user.jpg")
-    : getApiPublicImgUrl(imageName, "user");
+    ? getClientPublicImageUrl("default-user.jpg")
+    : getApiPublicFileUrl(imageName, "user");
+};
+
+export const getProductImageUrl = (imageName) => {
+  return imageName === "null" || !imageName
+    ? getClientPublicImageUrl("default-user.jpg")
+    : getApiPublicFileUrl(imageName, "product-images");
 };
 
 export const removeNullProperties = (obj) => {

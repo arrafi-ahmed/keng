@@ -5,7 +5,7 @@
  */
 // lab
 import {VTimePicker} from "vuetify/labs/VTimePicker";
-import { VFileUpload } from 'vuetify/labs/VFileUpload'
+import {VFileUpload} from "vuetify/labs/VFileUpload";
 
 // Styles
 import "@mdi/font/css/materialdesignicons.css";
@@ -18,7 +18,7 @@ import {createVuetify} from "vuetify";
 export default createVuetify({
   components: {
     VTimePicker,
-    VFileUpload
+    VFileUpload,
   },
   theme: {
     defaultTheme: "dark",

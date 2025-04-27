@@ -2,7 +2,10 @@
 import NoItems from "@/components/NoItems.vue";
 import { formatDateTime } from "@/others/util.js";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
+import Product from "@/models/Product.js";
+import ProductIdentity from "@/models/ProductIdentity.js";
 
 definePage({
   name: "products",
@@ -13,17 +16,18 @@ definePage({
   },
 });
 const store = useStore();
+const router = useRouter();
 
 const productHeaders = ref([
-  {
-    title: "Product Id",
-    align: "start",
-    key: "productIdentities",
-  },
   {
     title: "Name",
     align: "start",
     key: "name",
+  },
+  {
+    title: "Product Id",
+    align: "start",
+    key: "productIdentities",
   },
   {
     title: "Price",
@@ -50,7 +54,7 @@ const productList = computed(() => {
 });
 
 const pageProduct = ref(1);
-const productItemsPerPage = ref(20);
+const productItemsPerPage = ref(10);
 const totalCountProduct = ref(0);
 const totalPagesProduct = computed(() =>
   Math.ceil(totalCountProduct.value / productItemsPerPage.value),
@@ -61,12 +65,15 @@ const productSearch = ref("");
 const loadProductItems = ({ fetchTotalCount = true } = {}) => {
   const offset = (pageProduct.value - 1) * productItemsPerPage.value;
   const limit = productItemsPerPage.value;
+  productLoading.value = true;
 
-  return store.dispatch("product/setProductsByUserId", {
-    offset,
-    limit,
-    fetchTotalCount,
-  });
+  return store
+    .dispatch("product/setProductsByUserId", {
+      offset,
+      limit,
+      fetchTotalCount,
+    })
+    .then(() => (productLoading.value = false));
 };
 
 const goNextProduct = async () => {
@@ -86,26 +93,11 @@ const productDialog = ref(false);
 const addProductForm = ref(null);
 const isProductFormValid = ref(true);
 
-const productInit = {
-  name: null,
-  description: null,
-  price: null,
-  productIdentities: [],
-  productImages: [],
-  certificates: [],
-  manuals: [],
-};
-const productIdentityInit = {
-  identityNo: null,
-  identityType: 10,
-};
+const newProduct = reactive({ ...new Product() });
 
-const newProduct = reactive({ ...productInit });
-// const newProduct.productIdentities = [{...productIdentityInit}];
-
-const addMoreProductIndentities = () => {
+const addMoreProductIdentities = () => {
   newProduct.productIdentities = newProduct.productIdentities.concat({
-    ...productIdentityInit,
+    ...new ProductIdentity(),
   });
 };
 
@@ -121,27 +113,27 @@ const handleSubmitProductAdd = async () => {
     "productIdentities",
     JSON.stringify(newProduct.productIdentities),
   );
-  if (newProduct.productImages && newProduct.productImages.length > 0) {
+  if (newProduct.productImages?.length > 0) {
     newProduct.productImages.forEach((file) => {
       formData.append("productImages", file);
     });
   }
-  if (newProduct.certificates && newProduct.certificates.length > 0) {
+  if (newProduct.certificates?.length > 0) {
     newProduct.certificates.forEach((file) => {
       formData.append("productCertificates", file);
     });
   }
-  if (newProduct.manuals && newProduct.manuals.length > 0) {
+  if (newProduct.manuals?.length > 0) {
     newProduct.manuals.forEach((file) => {
       formData.append("productManuals", file);
     });
   }
-  console.log(2, newProduct);
+
   store.dispatch("product/save", formData).then((res) => {
     store.commit("product/addProduct", {
       ...res.savedProduct,
       productIdentities: res.savedProductIdentities.map((item) => ({
-        piId: item.id,
+        id: item.id,
         identityType: item.identityType,
         identityNo: item.identityNo,
       })),
@@ -150,12 +142,16 @@ const handleSubmitProductAdd = async () => {
   });
 };
 
+const editProduct = ({ productId }) => {
+  router.push({ name: "product-edit", params: { productId } });
+};
+
 const fetchData = async () => {
   const { totalCount } = await loadProductItems({ fetchTotalCount: true });
   totalCountProduct.value = totalCount;
 };
 onMounted(async () => {
-  fetchData();
+  await fetchData();
 });
 </script>
 
@@ -167,9 +163,9 @@ onMounted(async () => {
     >
       <v-col>
         <page-title
-          title="Products"
-          :show-back="true"
           :border-b="true"
+          :show-back="true"
+          title="Products"
         >
           <v-row align="center">
             <v-menu>
@@ -229,12 +225,17 @@ onMounted(async () => {
             item-value="name"
           >
             <template #item.productIdentities="{ item }">
-              <div
-                v-for="identity in item.productIdentities"
-                :key="identity.piId"
-              >
-                {{ identity.identityType === 10 && "Serial: " }}
-                {{ identity.identityNo }}
+              <div v-if="item.productIdentities?.length > 0">
+                <div
+                  v-for="identity in item.productIdentities"
+                  :key="identity.piId"
+                >
+                  {{ identity.identityType === 10 && "Serial: " }}
+                  {{ identity.identityNo }}
+                </div>
+              </div>
+              <div v-else>
+                No data
               </div>
             </template>
 
@@ -242,7 +243,7 @@ onMounted(async () => {
               ${{ parseFloat(item.price).toFixed(2) }}
             </template>
 
-            <template #item.pCreatedAt="{ item }">
+            <template #item.createdAt="{ item }">
               {{ item.createdAt }}
             </template>
 
@@ -251,21 +252,22 @@ onMounted(async () => {
                 <template #activator="{ props }">
                   <v-btn
                     icon="mdi-dots-vertical"
-                    variant="text"
                     v-bind="props"
+                    variant="text"
                   />
                 </template>
 
                 <v-list density="compact">
                   <v-list-item
-                    title="Warranty"
-                    prepend-icon="mdi-cash"
                     link
+                    prepend-icon="mdi-cash"
+                    title="Warranty"
                   />
                   <v-list-item
-                    title="Edit"
-                    prepend-icon="mdi-pencil"
                     link
+                    prepend-icon="mdi-pencil"
+                    title="Edit"
+                    @click="editProduct({ productId: item.id })"
                   />
                 </v-list>
               </v-menu>
@@ -352,8 +354,8 @@ onMounted(async () => {
             hide-details="auto"
             label="Price"
             rounded="lg"
-            variant="outlined"
             type="number"
+            variant="outlined"
           />
           <div
             v-for="(identity, index) in newProduct.productIdentities"
@@ -361,54 +363,54 @@ onMounted(async () => {
           >
             <v-text-field
               v-model="identity.identityNo"
+              :label="`Serial #${index + 1}`"
               :rules="[(v) => !!v || 'Serial is required!']"
               class="mt-2 mt-md-4"
               clearable
               density="comfortable"
               hide-details="auto"
-              :label="`Serial #${index + 1}`"
               rounded="lg"
               variant="outlined"
             />
           </div>
           <v-btn
+            class="mt-2"
             color="primary"
             rounded="lg"
             size="small"
-            class="mt-2"
-            @click="addMoreProductIndentities"
+            @click="addMoreProductIdentities"
           >
             Add More Serial
           </v-btn>
           <v-file-upload
             v-model="newProduct.productImages"
-            title="Upload Product Images"
-            density="compact"
-            variant="compact"
-            class="mt-2 mt-md-4"
-            multiple
-            clearable
             :hide-browse="false"
+            class="mt-2 mt-md-4"
+            clearable
+            density="compact"
+            multiple
+            title="Upload Product Images"
+            variant="compact"
           />
           <v-file-upload
             v-model="newProduct.certificates"
-            title="Upload Certificates"
-            density="compact"
-            variant="compact"
-            class="mt-2 mt-md-4"
-            multiple
-            clearable
             :hide-browse="false"
+            class="mt-2 mt-md-4"
+            clearable
+            density="compact"
+            multiple
+            title="Upload Certificates"
+            variant="compact"
           />
           <v-file-upload
             v-model="newProduct.manuals"
-            title="Upload Manuals"
-            density="compact"
-            variant="compact"
-            class="mt-2 mt-md-4"
-            multiple
-            clearable
             :hide-browse="false"
+            class="mt-2 mt-md-4"
+            clearable
+            density="compact"
+            multiple
+            title="Upload Manuals"
+            variant="compact"
           />
 
           <v-card-actions class="mt-2 mt-md-4">

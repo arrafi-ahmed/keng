@@ -2,6 +2,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { fileConfig, getConfigByFieldname } = require("../helpers/fileFields");
+const {generateFilename} = require("../helpers/util");
 
 // Ensure destination folders exist
 Object.values(fileConfig).forEach(({ dir }) => {
@@ -14,9 +15,8 @@ const storage = multer.diskStorage({
     cb(null, config?.dir || path.join(__dirname, "..", "..", "public", "tmp"));
   },
   filename: (req, file, cb) => {
-    const config = getConfigByFieldname(file.fieldname);
     const ext = path.extname(file.originalname);
-    const unique = `${config?.prefix || "file"}-${Date.now()}-${Math.round(Math.random() * 1e5)}${ext}`;
+    const unique = generateFilename({prefix:file.fieldname, ext});
     cb(null, unique);
   },
 });
