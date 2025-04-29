@@ -109,27 +109,7 @@ onMounted(async () => {
           :border-b="true"
           :show-back="true"
           title="Edit Product"
-        >
-          <!--          <v-row align="center">-->
-          <!--            <v-menu>-->
-          <!--              <template #activator="{ props }">-->
-          <!--                <v-btn-->
-          <!--                  icon="mdi-dots-vertical"-->
-          <!--                  v-bind="props"-->
-          <!--                  variant="text"-->
-          <!--                />-->
-          <!--              </template>-->
-          <!--              <v-list density="compact">-->
-          <!--                <v-list-item-->
-          <!--                  density="compact"-->
-          <!--                  prepend-icon="mdi-plus"-->
-          <!--                  title="Add Product"-->
-          <!--                  @click="productDialog = !productDialog"-->
-          <!--                />-->
-          <!--              </v-list>-->
-          <!--            </v-menu>-->
-          <!--          </v-row>-->
-        </page-title>
+        />
       </v-col>
     </v-row>
 

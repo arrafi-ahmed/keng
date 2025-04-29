@@ -53,18 +53,18 @@ const productList = computed(() => {
   }));
 });
 
-const pageProduct = ref(1);
-const productItemsPerPage = ref(10);
-const totalCountProduct = ref(0);
-const totalPagesProduct = computed(() =>
-  Math.ceil(totalCountProduct.value / productItemsPerPage.value),
+const page = ref(1);
+const itemsPerPage = ref(10);
+const totalCount = ref(0);
+const totalPages = computed(() =>
+  Math.ceil(totalCount.value / itemsPerPage.value),
 );
 const productLoading = ref(false);
 const productSearch = ref("");
 
 const loadProductItems = ({ fetchTotalCount = true } = {}) => {
-  const offset = (pageProduct.value - 1) * productItemsPerPage.value;
-  const limit = productItemsPerPage.value;
+  const offset = (page.value - 1) * itemsPerPage.value;
+  const limit = itemsPerPage.value;
   productLoading.value = true;
 
   return store
@@ -142,13 +142,9 @@ const handleSubmitProductAdd = async () => {
   });
 };
 
-const editProduct = ({ productId }) => {
-  router.push({ name: "product-edit", params: { productId } });
-};
-
 const fetchData = async () => {
-  const { totalCount } = await loadProductItems({ fetchTotalCount: true });
-  totalCountProduct.value = totalCount;
+  const res = await loadProductItems({ fetchTotalCount: true });
+  totalCount.value = res.totalCount;
 };
 onMounted(async () => {
   await fetchData();
@@ -215,8 +211,8 @@ onMounted(async () => {
             v-if="productList.length"
             :headers="productHeaders"
             :items="productList"
-            :items-length="totalCountProduct"
-            :items-per-page="productItemsPerPage"
+            :items-length="totalCount"
+            :items-per-page="itemsPerPage"
             :loading="productLoading"
             :search="productSearch"
             disable-sort
@@ -260,14 +256,36 @@ onMounted(async () => {
                 <v-list density="compact">
                   <v-list-item
                     link
-                    prepend-icon="mdi-cash"
-                    title="Warranty"
+                    prepend-icon="mdi-pencil"
+                    title="Edit"
+                    @click="
+                      router.push({
+                        name: 'product-edit',
+                        params: { productId: item.id },
+                      })
+                    "
                   />
                   <v-list-item
                     link
-                    prepend-icon="mdi-pencil"
-                    title="Edit"
-                    @click="editProduct({ productId: item.id })"
+                    prepend-icon="mdi-shield-check"
+                    title="Warranty"
+                    @click="
+                      router.push({
+                        name: 'product-warranty',
+                        params: { productId: item.id },
+                      })
+                    "
+                  />
+                  <v-list-item
+                    link
+                    prepend-icon="mdi-qrcode"
+                    title="QR Code"
+                    @click="
+                      router.push({
+                        name: 'qrcode-view',
+                        params: { productId: item.id, uuid: item.uuid },
+                      })
+                    "
                   />
                 </v-list>
               </v-menu>
@@ -276,8 +294,8 @@ onMounted(async () => {
             <template #bottom>
               <div class="text-center">
                 <v-pagination
-                  v-model="pageProduct"
-                  :length="totalPagesProduct"
+                  v-model="page"
+                  :length="totalPages"
                   :total-visible="1"
                   class="mt-2"
                   density="compact"

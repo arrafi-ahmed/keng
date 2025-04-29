@@ -4,7 +4,7 @@ import { useDisplay } from "vuetify";
 import { formatDate } from "@/others/util";
 
 const model = defineModel();
-const { width, height, xs } = useDisplay();
+const { width, xs } = useDisplay();
 
 const { label, color, customClass, rules, variant, density, showIcon } =
   defineProps([

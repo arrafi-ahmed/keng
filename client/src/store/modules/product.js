@@ -4,6 +4,7 @@ export const namespaced = true;
 
 export const state = {
   product: {},
+  warranty: {},
   products: [],
 };
 
@@ -13,6 +14,9 @@ export const mutations = {
   },
   setProduct(state, payload) {
     state.product = payload;
+  },
+  setWarranty(state, payload) {
+    state.warranty = payload;
   },
   addProduct(state, payload) {
     state.products.unshift(payload);
@@ -51,6 +55,24 @@ export const actions = {
       },
     });
     commit("setProduct", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setWarranty({ commit }, request) {
+    const response = await $axios.get("/api/product/getWarranty", {
+      params: {
+        productId: request.productId,
+      },
+    });
+    commit("setWarranty", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async saveWarranty({ commit }, request) {
+    const response = await $axios.post("/api/product/saveWarranty", request);
+    // const actionType = request.id ? "edit" : "add";
+    // const actionName = `${actionType}Product`;
+    // commit(actionName, response.data?.payload);
     return response.data?.payload;
   },
 

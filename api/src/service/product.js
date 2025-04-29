@@ -209,3 +209,72 @@ exports.getProduct = async ({ query: { productId } }) => {
 
   return result;
 };
+
+exports.saveWarranty = async ({ payload: { newWarranty } }) => {
+  if (newWarranty.id) {
+    newWarranty.updatedAt = new Date().toISOString();
+  } else {
+    newWarranty.createdAt = new Date().toISOString();
+  }
+  const [savedWarranty] = await sql`
+        insert into product_warranties ${sql(newWarranty)} on conflict(id)
+        do
+        update set ${sql(newWarranty, [
+          "warrantyStartDate",
+          "warrantyExpirationDate",
+          "authenticityConfirmation",
+          "warrantyConditions",
+          "voidConditions",
+          "supportContact",
+          "usageAdvice",
+        ])}
+            returning *`;
+  return { savedWarranty };
+};
+
+exports.getProduct = async ({ query: { productId } }) => {
+  // @formatter:off
+  const [result] = await sql`
+    SELECT p.*,
+           p.id                          AS p_id,
+           p.created_at                  AS created_at,
+           (SELECT json_agg(json_build_object(
+               'id', pi.id,
+               'identity_type', pi.identity_type,
+               'identity_no', pi.identity_no
+                            ))
+            FROM product_identities pi
+            WHERE pi.product_id = p.id)  AS product_identities,
+           (SELECT json_agg(json_build_object(
+               'id', pf.id,
+               'file_type', pf.file_type,
+               'filename', pf.filename
+                            ))
+            FROM product_files pf
+            WHERE pf.product_id = p.id)  AS product_files,
+           (SELECT json_agg(json_build_object(
+               'id', pim.id,
+               'sort_order', pim.sort_order,
+               'filename', pim.filename
+                            ))
+            FROM product_images pim
+            WHERE pim.product_id = p.id) AS product_images
+    FROM products p
+    WHERE p.id = ${productId}
+  `;
+  // @formatter:on
+
+  return result;
+};
+
+exports.getWarranty = async ({ query: { productId } }) => {
+  // @formatter:off
+  const [result] = await sql`
+    SELECT *
+            FROM product_warranties
+            WHERE product_id = ${productId}
+  `;
+  // @formatter:on
+
+  return result;
+};
