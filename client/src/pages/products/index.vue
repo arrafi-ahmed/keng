@@ -73,7 +73,9 @@ const loadProductItems = ({ fetchTotalCount = true } = {}) => {
       limit,
       fetchTotalCount,
     })
-    .then(() => (productLoading.value = false));
+    .finally(() => {
+      productLoading.value = false;
+    });
 };
 
 const goNextProduct = async () => {
