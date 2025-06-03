@@ -1,6 +1,6 @@
 const { sql } = require("../db");
 const { v4: uuidv4 } = require("uuid");
-const { removeFiles } = require("../helpers/util");
+const { removeFiles, VUE_BASE_URL } = require("../helpers/util");
 
 exports.save = async ({ payload, files }) => {
   const newProduct = {
@@ -17,10 +17,10 @@ exports.save = async ({ payload, files }) => {
     newProduct.createdAt = new Date().toISOString();
   }
   const [savedProduct] = await sql`
-        insert into products ${sql(newProduct)} on conflict(id)
+    insert into products ${sql(newProduct)} on conflict(id)
         do
-        update set ${sql(newProduct, ["name", "description", "price", "userId", "updatedAt"])}
-            returning *`;
+    update set ${sql(newProduct, ["name", "description", "price", "userId", "updatedAt"])}
+      returning *`;
 
   const productIdentities = JSON.parse(payload.productIdentities || "[]");
 
@@ -35,7 +35,8 @@ exports.save = async ({ payload, files }) => {
         identityNo: identity.identityNo,
         identityType: identity.identityType,
         productId: savedProduct.id,
-        createdAt: new Date().toISOString(),
+        uuid: uuidv4(),
+        isAvailable: true,
       };
       if (identity.id) {
         newIdentity.id = identity.id;
@@ -55,20 +56,20 @@ exports.save = async ({ payload, files }) => {
   }
   if (identitiesToInsert?.length > 0) {
     insertedIdentities = await sql`
-            insert into product_identities ${sql(identitiesToInsert)} returning *`;
+      insert into product_identities ${sql(identitiesToInsert)} returning *`;
   }
   if (identitiesToUpdate?.length > 0) {
     updatedIdentities = await sql`
-            update product_identities
-            set identity_no   = update_data.identity_no,
-                identity_type = (update_data.identity_type)::int,
+      update product_identities
+      set identity_no   = update_data.identity_no,
+          identity_type = (update_data.identity_type)::int,
     updated_at = (update_data.updated_at)::timestamp
-            from (
-                values ${sql(identitiesToUpdate)}
-                ) as update_data (id, identity_no, identity_type, updated_at)
-            where product_identities.id = (update_data.id):: int
-                returning product_identities.*;
-        `;
+      from (
+        values ${sql(identitiesToUpdate)}
+        ) as update_data (id, identity_no, identity_type, updated_at)
+      where product_identities.id = (update_data.id):: int
+        returning product_identities.*;
+    `;
   }
   const savedProductIdentities = insertedIdentities.concat(updatedIdentities);
 
@@ -80,9 +81,9 @@ exports.save = async ({ payload, files }) => {
       productId: savedProduct.id,
     }));
     const savedProductImages = await sql`
-            insert
-            into product_images
-                ${sql(newProductImages)} returning * `;
+      insert
+      into product_images
+        ${sql(newProductImages)} returning * `;
   }
 
   let newProductCertificates = [];
@@ -104,24 +105,24 @@ exports.save = async ({ payload, files }) => {
   const newProductFiles = newProductCertificates.concat(newProductManuals);
   if (newProductFiles.length > 0) {
     const savedProductFiles = await sql`
-            insert
-            into product_files
-                ${sql(newProductFiles)} returning * `;
+      insert
+      into product_files
+        ${sql(newProductFiles)} returning * `;
   }
   const filesToRemove = JSON.parse(payload.removeFiles || "{}");
 
   if (filesToRemove.productImages?.length > 0) {
     const deletedImages = await sql`
-            delete
-            from product_images
-            where id in ${sql(filesToRemove.productImages.map((i) => i.id))} returning *`;
+      delete
+      from product_images
+      where id in ${sql(filesToRemove.productImages.map((i) => i.id))} returning *`;
     await removeFiles(filesToRemove.productImages.map((i) => i.filename));
   }
   if (filesToRemove.productFiles?.length > 0) {
     const deletedFiles = await sql`
-            delete
-            from product_files
-            where id in ${sql(filesToRemove.productFiles.map((i) => i.id))} returning *`;
+      delete
+      from product_files
+      where id in ${sql(filesToRemove.productFiles.map((i) => i.id))} returning *`;
     await removeFiles(filesToRemove.productFiles.map((i) => i.filename));
   }
 
@@ -129,7 +130,7 @@ exports.save = async ({ payload, files }) => {
 };
 
 exports.getProductsByUserId = async ({
-  query: { offset, limit, fetchTotalCount, userId },
+  payload: { offset, limit, fetchTotalCount, userId },
 }) => {
   const offsetValue = offset || 0; // Default offset
   const limitValue = limit || 10; // Default limit
@@ -145,7 +146,8 @@ exports.getProductsByUserId = async ({
         json_build_object(
             'id', pi.id,
             'identity_type', pi.identity_type,
-            'identity_no', pi.identity_no
+            'identity_no', pi.identity_no,
+            'uuid', pi.uuid
         )
       ) FILTER (WHERE pi.id IS NOT NULL) as product_identities
     FROM
@@ -171,11 +173,10 @@ exports.getProductsByUserId = async ({
           p.user_id = ${userId}
     `;
   // @formatter:on
-
   return { list: result, totalCount: count.total || 0 };
 };
 
-exports.getProduct = async ({ query: { productId } }) => {
+exports.getProduct = async ({ payload: { productId } }) => {
   // @formatter:off
   const [result] = await sql`
     SELECT p.*,
@@ -184,7 +185,8 @@ exports.getProduct = async ({ query: { productId } }) => {
            (SELECT json_agg(json_build_object(
                'id', pi.id,
                'identity_type', pi.identity_type,
-               'identity_no', pi.identity_no
+               'identity_no', pi.identity_no,
+               'uuid', pi.uuid
                             ))
             FROM product_identities pi
             WHERE pi.product_id = p.id)  AS product_identities,
@@ -204,6 +206,71 @@ exports.getProduct = async ({ query: { productId } }) => {
             WHERE pim.product_id = p.id) AS product_images
     FROM products p
     WHERE p.id = ${productId}
+  `;
+  // @formatter:on
+
+  return result;
+};
+
+exports.removeProduct = async ({ payload: { productId } }) => {
+  // @formatter:off
+  const existingProduct = await exports.getProduct({ payload: { productId } });
+  const [result] = await sql`
+    DELETE 
+    FROM products p
+    WHERE p.id = ${productId} returning *
+  `;
+  // @formatter:on
+  let filesToRemove = [];
+  if (existingProduct.productFiles?.length > 0) {
+    filesToRemove = filesToRemove.concat(existingProduct.productFiles);
+  }
+  if (existingProduct.productImages?.length > 0) {
+    filesToRemove = filesToRemove.concat(existingProduct.productImages);
+  }
+  if (filesToRemove.length > 0) {
+    await removeFiles(filesToRemove);
+  }
+  return result;
+};
+
+exports.getPublicProduct = async ({ payload: { productId, uuid } }) => {
+  // @formatter:off
+  const condProductId = productId ? sql` p.id = ${productId}` : sql``;
+  const condUuid = uuid ? sql` uuid = ${uuid}` : sql``;
+
+  const cond =
+    productId && uuid
+      ? sql` where ${condProductId} and ${condUuid}`
+      : productId
+        ? sql` where ${condProductId}`
+        : uuid
+          ? sql` where ${condUuid}`
+          : sql``;
+
+  // console.log(2, productId, uuid);
+  // console.log(3, cond.describe());
+
+  const [result] = await sql`
+    SELECT p.*,
+           p.id                          AS id,
+           p.created_at                  AS created_at,
+           (SELECT json_agg(json_build_object(
+               'id', pf.id,
+               'file_type', pf.file_type,
+               'filename', pf.filename
+                            ))
+            FROM product_files pf
+            WHERE pf.product_id = p.id AND file_type = 11)  AS files,
+           (SELECT json_agg(json_build_object(
+               'id', pim.id,
+               'sort_order', pim.sort_order,
+               'filename', pim.filename
+                            ))
+            FROM product_images pim
+            WHERE pim.product_id = p.id) AS images
+    FROM products p
+    ${cond}
   `;
   // @formatter:on
 
@@ -217,34 +284,96 @@ exports.saveWarranty = async ({ payload: { newWarranty } }) => {
     newWarranty.createdAt = new Date().toISOString();
   }
   const [savedWarranty] = await sql`
-        insert into product_warranties ${sql(newWarranty)} on conflict(id)
+    insert into product_warranties ${sql(newWarranty)} on conflict(id)
         do
-        update set ${sql(newWarranty, [
-          "warrantyStartDate",
-          "warrantyExpirationDate",
-          "authenticityConfirmation",
-          "warrantyConditions",
-          "voidConditions",
-          "supportContact",
-          "usageAdvice",
-        ])}
-            returning *`;
+    update set ${sql(newWarranty, [
+      "warrantyStartDate",
+      "warrantyExpirationDate",
+      "authenticityConfirmation",
+      "warrantyConditions",
+      "voidConditions",
+      "supprtContact",
+      "usageAdvice",
+    ])}
+      returning *`;
   return { savedWarranty };
 };
 
-exports.getProduct = async ({ query: { productId } }) => {
+exports.getWarranty = async ({
+  payload: { productIdentitiesId, identityNo, uuid },
+}) => {
+  const condArr = [];
   // @formatter:off
+  const condProductIdentitiesId = productIdentitiesId
+    ? condArr.push(sql`pi.id = ${productIdentitiesId}`)
+    : null;
+  const condIdentityNo = identityNo
+    ? condArr.push(sql`pi.identity_no = ${identityNo}`)
+    : null;
+  const condUuid = uuid ? condArr.push(sql`pi.uuid = ${uuid}`) : null;
+
+  let cond = sql``;
+  if (condArr.length > 0) {
+    cond = sql`WHERE ${condArr[0]}`;
+    for (let i = 1; i < condArr.length; i++) {
+      cond = sql`${cond} AND ${condArr[i]}`;
+    }
+  }
+
+  const [result] = await sql`
+    SELECT *
+            FROM product_warranties pw join product_identities pi 
+              on pw.product_identities_id = pi.id
+            ${cond}
+  `;
+  // @formatter:on
+
+  return result;
+};
+
+exports.getProductWIdentity = async ({
+  payload: { productId, productIdentitiesId, uuid },
+}) => {
+  // @formatter:off
+  const condProductIdentitiesId = productIdentitiesId
+    ? sql` pi.id =
+    ${productIdentitiesId}`
+    : sql``;
+  const condUuid = uuid
+    ? sql` pi.uuid =
+    ${uuid}`
+    : sql``;
+
+  const condProductIdentity =
+    productIdentitiesId && uuid
+      ? sql` WHERE
+      ${condProductIdentitiesId}
+      AND
+      ${condUuid}`
+      : productIdentitiesId
+        ? sql` WHERE
+        ${condProductIdentitiesId}`
+        : uuid
+          ? sql` WHERE ${condUuid}`
+          : sql``;
+
+  const condProductId = productId
+    ? sql` WHERE p.id =
+    ${productId}`
+    : sql``;
+
   const [result] = await sql`
     SELECT p.*,
            p.id                          AS p_id,
            p.created_at                  AS created_at,
-           (SELECT json_agg(json_build_object(
+           (SELECT json_build_object(
                'id', pi.id,
                'identity_type', pi.identity_type,
-               'identity_no', pi.identity_no
-                            ))
+               'identity_no', pi.identity_no,
+               'uuid', pi.uuid
+                            )
             FROM product_identities pi
-            WHERE pi.product_id = p.id)  AS product_identities,
+            ${condProductIdentity})  AS product_identity,
            (SELECT json_agg(json_build_object(
                'id', pf.id,
                'file_type', pf.file_type,
@@ -260,21 +389,19 @@ exports.getProduct = async ({ query: { productId } }) => {
             FROM product_images pim
             WHERE pim.product_id = p.id) AS product_images
     FROM products p
-    WHERE p.id = ${productId}
+    ${condProductId}
   `;
   // @formatter:on
 
   return result;
 };
 
-exports.getWarranty = async ({ query: { productId } }) => {
-  // @formatter:off
-  const [result] = await sql`
-    SELECT *
-            FROM product_warranties
-            WHERE product_id = ${productId}
-  `;
-  // @formatter:on
+exports.saveScan = async ({ payload: { newScan } }) => {
+  const [savedScan] = await sql`
+    insert into qr_code_scans ${sql(newScan)} on conflict(id)
+        do
+    update set ${sql(newScan)}
+      returning *`;
 
-  return result;
+  return savedScan;
 };

@@ -1,6 +1,5 @@
 const cors = require("cors");
-
-const excludedUrls = [];
+const { excludedSecurityURLs } = require("../helpers/util");
 
 const customCors = (req, res, next) => {
   const baseUrl = process.env.VUE_BASE_URL;
@@ -15,14 +14,27 @@ const customCors = (req, res, next) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.warn(
+          `[CORS Error]: Origin ${origin} not allowed for ${req.originalUrl}`,
+        );
         return res.status(403).send("Not allowed by CORS");
       }
     },
-    exposedHeaders: "authorization",
+    exposedHeaders: ["Content-Disposition", "authorization"],
     credentials: true,
   };
-  const isExcluded = excludedUrls.some((url) => req.originalUrl.includes(url));
+
+  const isExcluded = excludedSecurityURLs.some((url) =>
+    req.originalUrl.includes(url),
+  ); // Uses directly
+
   if (isExcluded) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     return next();
   }
   return cors(corsOptions)(req, res, next);

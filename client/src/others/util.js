@@ -1,10 +1,11 @@
-import { toast } from "vue-sonner";
 import { countries } from "@/others/country-list";
+import store from "@/store/index.js";
 
 export const appInfo = { name: "QuickStarter", version: 1.0 };
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const clientBaseUrl = import.meta.env.VITE_BASE_URL;
 export const isProd = import.meta.env.PROD;
+export const siteCurrency = { symbol: "$", code: "USD" };
 
 export const getSlug = (slug) =>
   slug
@@ -102,13 +103,22 @@ export const getToLink = (item) => {
   return item.to;
 };
 
-export const getQueryParam = (param) => {
+export const showApiQueryMsg = () => {
+  if (localStorage.hasOwnProperty("apiQueryMsg")) {
+    store.commit("addSnackbar", {
+      text: localStorage.getItem("apiQueryMsg"),
+    });
+    localStorage.removeItem("apiQueryMsg");
+  }
+};
+
+export const getQueryParam = ({ param }) => {
   const queryParams = new URLSearchParams(window.location.search);
   return queryParams.get(param);
 };
 
-export const removeQueryParams = (url, paramsToRemove) => {
-  const parsedUrl = new URL(url);
+export const removeQueryParams = ({ paramsToRemove }) => {
+  const parsedUrl = new URL(window.location.href);
 
   // Create a URLSearchParams object from the URL's search parameters
   const searchParams = new URLSearchParams(parsedUrl.search);
@@ -123,6 +133,52 @@ export const removeQueryParams = (url, paramsToRemove) => {
 
   // Return the updated URL as a string
   return parsedUrl.toString();
+};
+
+export const handleRedirect = ({ param, hardRedirect = true }) => {
+  const paramValue = getQueryParam({ param });
+  if (paramValue) {
+    let newUrl = paramValue;
+
+    if (hardRedirect) window.location.replace(newUrl);
+    else window.history.replaceState({}, document.title, newUrl); // Corrected: Use .replace() as a method
+    return true; // Indicates a redirect happened
+  }
+  return false;
+};
+
+export const handleRemoveQueriesNRedirect = ({
+  params = [], // Array of param names to check/remove
+  saveToLocalStorage = true,
+  hardRedirect = true,
+}) => {
+  let found = false;
+  let queryParamsToRemove = [];
+
+  params.forEach((paramName) => {
+    const paramValue = getQueryParam({ param: paramName });
+
+    if (paramValue) {
+      found = true;
+      queryParamsToRemove.push(paramName);
+
+      if (saveToLocalStorage) {
+        localStorage.setItem(paramName, paramValue);
+      }
+    }
+  });
+
+  if (found) {
+    const newUrl = removeQueryParams({ paramsToRemove: queryParamsToRemove });
+
+    if (hardRedirect) {
+      window.location.replace(newUrl);
+    } else {
+      window.history.replaceState({}, document.title, newUrl);
+    }
+    return true;
+  }
+  return false;
 };
 
 export const isValidEmail = (email) => {
@@ -140,22 +196,6 @@ export const isValidPass = [
   (v) => v.length >= 8 || "Password must be 8 or more characters!",
   (v) => /\d/.test(v) || "Password must include at least one number!",
 ];
-
-export const showApiQueryMsg = (color = "blue") => {
-  if (localStorage.hasOwnProperty("apiQueryMsg")) {
-    toast(localStorage.getItem("apiQueryMsg"), {
-      cardProps: { color },
-      action: {
-        label: "Close",
-        buttonProps: {
-          color: "white",
-        },
-        onClick() {},
-      },
-    });
-    localStorage.removeItem("apiQueryMsg");
-  }
-};
 
 export const input_fields = [
   { id: 0, title: "Short answer" },
@@ -180,6 +220,87 @@ export const getCurrencySymbol = (currencyCode, type) => {
   };
 
   return currencyMap[currencyCodeLower][type];
+};
+
+export const getUserLocation = () => {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy, // Accuracy in meters
+            timestamp: position.timestamp, // Timestamp of the reading
+          });
+        },
+        (error) => {
+          // Handle various error codes
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              reject(new Error("User denied the request for Geolocation."));
+              break;
+            case error.POSITION_UNAVAILABLE:
+              reject(new Error("Location information is unavailable."));
+              break;
+            case error.TIMEOUT:
+              reject(new Error("The request to get user location timed out."));
+              break;
+            case error.UNKNOWN_ERROR:
+            default:
+              reject(new Error("An unknown error occurred getting location."));
+              break;
+          }
+        },
+        {
+          // Optional: Geolocation options
+          enableHighAccuracy: true, // Try to get the best possible result
+          timeout: 5000, // Maximum time (ms) to wait for a position
+          maximumAge: 0, // Don't use a cached position
+        },
+      );
+    } else {
+      reject(new Error("Geolocation is not supported by this browser."));
+    }
+  });
+};
+
+export const downloadFile = async (apiEndpoint) => {
+  try {
+    const response = await $axios.get(apiEndpoint, {
+      responseType: "blob",
+    });
+    const blob = response.data;
+
+    // Extract filename from Content-Disposition header if available
+    // Example: 'attachment; filename="my_document.pdf"'
+    let filename = `download-${new Date().toISOString()}`; // Default filename
+    const contentDisposition = response.headers["content-disposition"];
+
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1];
+      }
+    }
+    // Create a temporary URL for the Blob object
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a temporary <a> element
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename); // Set the desired filename for the download
+
+    // Append the link to the document body, programmatically click it, and then remove it
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Revoke the temporary URL to free up memory
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error downloading file:", error);
+  }
 };
 
 // disable-horizontal-scrolling start
@@ -209,6 +330,7 @@ export const preventDrawerSwipe = (event) => {
     }
   }
 };
+
 export const addSwipeBlocking = () => {
   if (typeof window !== "undefined") {
     window.addEventListener("touchstart", preventDrawerSwipe, {

@@ -67,8 +67,8 @@ const handleSubmitResetPassword = async () => {
       <v-col
         :cols="12"
         :lg="6"
-        :md="6"
-        :sm="6"
+        :md="7"
+        :sm="8"
       >
         <v-card
           class="mx-auto pa-4 pa-md-8 my-2 my-md-5"
@@ -125,16 +125,16 @@ const handleSubmitResetPassword = async () => {
                 @click:append-inner="visible = !visible"
               />
 
-              <div class="d-flex align-center justify-space-between">
-                <v-checkbox
-                  v-model="isRemember"
-                  center-affix
-                  color="primary"
-                  hide-details="auto"
-                  label="Remember me"
-                />
+              <div class="d-flex align-center justify-end my-2">
+                <!--                <v-checkbox-->
+                <!--                  v-model="isRemember"-->
+                <!--                  center-affix-->
+                <!--                  color="primary"-->
+                <!--                  hide-details="auto"-->
+                <!--                  label="Remember me"-->
+                <!--                />-->
                 <span
-                  class="clickable text-blue mt-1 mt-sm-0"
+                  class="clickable text-blue mt-1 mt-sm-0 text-center"
                   @click="dialog = !dialog"
                 >
                   Forgot Password?

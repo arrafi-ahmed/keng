@@ -24,16 +24,25 @@ const isSudo = (req, res, next) => {
 };
 
 const isAuthenticated = (req, res, next) => {
+  req.isLoggedIn = false;
+  req.currentUser = null;
+
+  const authHeader = req.header("authorization"); // Use authHeader for clarity
+  const token =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
+
+  if (!token) {
+    return next();
+  }
   try {
-    const token = req.header("authorization");
-    if (!token) throw new Error();
-    const { currentUser } = jwt.verify(token, process.env.TOKEN_SECRET);
-    req.currentUser = currentUser;
+    const decodedPayload = jwt.verify(token, process.env.TOKEN_SECRET);
+    req.currentUser = decodedPayload.currentUser;
     req.isLoggedIn = true;
+    return next();
   } catch (error) {
-    req.isLoggedIn = false;
-  } finally {
-    next();
+    return next();
   }
 };
 // const isAdminEventAuthor = async (req, res, next) => {

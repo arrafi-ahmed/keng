@@ -20,7 +20,7 @@ const router = useRouter();
 const warranty = computed(() => store.state.product.warranty);
 const newWarranty = reactive({
   ...new Warranty(),
-  productId: route.params.productId,
+  productIdentitiesId: route.params.productIdentitiesId,
 });
 
 const form = ref(null);
@@ -36,7 +36,7 @@ const handleSubmitWarrantySave = async () => {
 };
 const fetchData = async () => {
   await store.dispatch("product/setWarranty", {
-    productId: route.params.productId,
+    productIdentitiesId: route.params.productIdentitiesId,
   });
 };
 onMounted(async () => {

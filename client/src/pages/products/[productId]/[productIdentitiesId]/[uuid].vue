@@ -1,36 +1,38 @@
 <script setup>
-import { useStore } from "vuex";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { useTheme } from "vuetify/framework";
 import QRCodeVue3 from "qrcode-vue3";
 import PageTitle from "@/components/PageTitle.vue";
+import { clientBaseUrl } from "@/others/util.js";
 
 definePage({
-  name: "qrcode-view",
+  name: "qrcode-view-product-identity",
   meta: {
     layout: "default",
-    title: "View QRCode",
+    title: "View Unit QR Code",
     requiresAuth: true,
   },
 });
-const store = useStore();
 const route = useRoute();
-const router = useRouter();
 const theme = useTheme();
 
 const productId = computed(() => route.params.productId);
+const productIdentitiesId = computed(() => route.params.productIdentitiesId);
 const uuid = computed(() => route.params.uuid);
 
 const qrCode = computed(() => {
-  return JSON.stringify({
-    id: productId.value,
-    uuid: uuid.value,
-  });
+  const params = new URLSearchParams();
+  params.append('uuid', uuid.value)
+  params.append('scanned', 1)
+
+  const route = `${clientBaseUrl}/products/${productId.value}/${productIdentitiesId.value}?${params.toString()}`;
+  return route;
 });
 
 const qrOptions = {
   type: "dot",
-  color: theme.global.current.value.colors.primary,
+  color: theme.global.current.value.colors.secondary,
+  margin: 20,
 };
 </script>
 
@@ -44,7 +46,7 @@ const qrOptions = {
         <page-title
           :border-b="true"
           :show-back="true"
-          title="View QRCode"
+          title="Unit QR Code"
         />
       </v-col>
     </v-row>
@@ -54,13 +56,14 @@ const qrOptions = {
     >
       <v-col cols="auto mt-5">
         <QRCodeVue3
-          v-if="productId && uuid"
+          v-if="productIdentitiesId && uuid"
           :corners-square-options="qrOptions"
           :dots-options="qrOptions"
           :download="true"
           :value="qrCode"
           :height="250"
           :width="250"
+          :margin="10"
           download-button="v-btn v-btn--block bg-primary v-btn--density-default v-btn--variant-flat mt-2"
         />
         <v-alert

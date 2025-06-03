@@ -29,7 +29,7 @@ export const mutations = {
       state.products[foundIndex] = payload;
     }
   },
-  removeProducts(state, payload) {
+  removeProduct(state, payload) {
     const foundIndex = state.products.findIndex(
       (item) => item.id == payload.id,
     );
@@ -58,12 +58,59 @@ export const actions = {
     return response.data?.payload;
   },
 
-  async setWarranty({ commit }, request) {
-    const response = await $axios.get("/api/product/getWarranty", {
+  async removeProduct({ commit }, request) {
+    const response = await $axios.get("/api/product/removeProduct", {
       params: {
         productId: request.productId,
       },
     });
+    commit("removeProduct", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setPublicProduct({ commit }, request) {
+    const response = await $axios.get("/api/product/getPublicProduct", {
+      params: {
+        productId: request.productId,
+        uuid: request.uuid,
+      },
+    });
+    commit("setProduct", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setPublicProductNScan({ commit }, request) {
+    const response = await $axios.post("/api/product/getPublicProductNScan", request);
+    commit("setProduct", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setWarranty({ commit }, request) {
+    const response = await $axios.get("/api/product/getWarranty", {
+      params: {
+        productIdentitiesId: request.productIdentitiesId,
+      },
+    });
+    commit("setWarranty", response.data?.payload);
+    return response.data?.payload;
+  },
+
+  async setWarrantyWProduct({ commit }, request) {
+    console.log(39, request);
+    const response = await $axios.get("/api/product/getWarrantyWProduct", {
+      params: {
+        productId: request.productId,
+        productIdentitiesId: request.productIdentitiesId,
+        uuid: request.uuid,
+      },
+    });
+    commit("setWarranty", response.data?.payload?.warranty);
+    commit("setProduct", response.data?.payload?.product);
+    return response.data?.payload;
+  },
+
+  async setWarrantyWProductNScan({ commit }, request) {
+    const response = await $axios.post("/api/product/getWarrantyWProductNScan", request);
     commit("setWarranty", response.data?.payload);
     return response.data?.payload;
   },
@@ -85,14 +132,6 @@ export const actions = {
       },
     });
     commit("setProducts", response.data?.payload?.list);
-    return response.data?.payload;
-  },
-
-  async removeProducts({ commit }, request) {
-    const response = await $axios.get("/api/product/removeProducts", {
-      params: { userId: request.id },
-    });
-    commit("removeProducts", response.data?.payload);
     return response.data?.payload;
   },
 };

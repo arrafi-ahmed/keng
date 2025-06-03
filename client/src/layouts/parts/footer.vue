@@ -9,7 +9,10 @@ const calcHome = computed(() => store.getters["user/calcHome"]);
 const items = [{ title: "Home", to: calcHome }];
 </script>
 <template>
-  <v-footer class="bg-grey-lighten-3 flex-grow-0">
+  <v-footer
+    class="flex-grow-0"
+    color="background"
+  >
     <v-row
       justify="center"
       no-gutters

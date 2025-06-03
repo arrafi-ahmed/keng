@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const path = require("path");
 const app = express();
 
+const customHelmet = require("./src/middleware/customHelmet");
 const customCors = require("./src/middleware/customCors");
 const { globalErrHandler, uncaughtErrHandler } = require("./src/middleware/errHandler");
 const { appInfo } = require("./src/helpers/util");
@@ -13,11 +14,7 @@ const { appInfo } = require("./src/helpers/util");
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(
-    helmet({
-      crossOriginResourcePolicy: { policy: "same-site" },
-    })
-);
+app.use(customHelmet);
 app.use(customCors);
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());

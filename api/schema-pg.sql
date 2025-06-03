@@ -11,14 +11,15 @@ CREATE TABLE users
 
 CREATE TABLE products
 (
-    id          SERIAL PRIMARY KEY,
-    name        VARCHAR(255)   NOT NULL,
-    description TEXT,
-    uuid        TEXT,
-    price       DECIMAL(10, 2) NOT NULL,
-    created_at  TIMESTAMP DEFAULT NOW(),
-    updated_at  TIMESTAMP DEFAULT NOW(),
-    user_id     INT REFERENCES users (id) ON DELETE CASCADE
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(255)   NOT NULL,
+    description     TEXT,
+    uuid            TEXT,
+    price           DECIMAL(10, 2) NOT NULL,
+    available_stock INT default 0, --added
+    created_at      TIMESTAMP DEFAULT NOW(),
+    updated_at      TIMESTAMP DEFAULT NOW(),
+    user_id         INT REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE product_identities
@@ -27,6 +28,8 @@ CREATE TABLE product_identities
     identity_no   VARCHAR(255) NOT NULL,
     identity_type SMALLINT CHECK (identity_type IN (10)), -- 10=serial
     product_id    INT REFERENCES products (id) ON DELETE CASCADE,
+    uuid          TEXT         NOT NULL,                  --added
+    is_available  BOOLEAN   DEFAULT TRUE,                 --added
     created_at    TIMESTAMP DEFAULT NOW(),
     updated_at    TIMESTAMP DEFAULT NOW(),
     UNIQUE (identity_type, identity_no)
@@ -55,7 +58,7 @@ CREATE TABLE product_images
 CREATE TABLE product_warranties
 (
     id                        SERIAL PRIMARY KEY,
-    product_id                INT REFERENCES products (id) ON DELETE CASCADE,
+    product_identities_id     INT REFERENCES product_identities (id) ON DELETE CASCADE, --updated
     warranty_start_date       DATE NOT NULL,
     warranty_expiration_date  DATE NOT NULL,
     authenticity_confirmation BOOLEAN   DEFAULT TRUE,
@@ -69,12 +72,13 @@ CREATE TABLE product_warranties
 
 CREATE TABLE qr_code_scans
 (
-    id         SERIAL PRIMARY KEY,
-    product_id INT REFERENCES products (id) ON DELETE CASCADE,
-    scanned_at TIMESTAMP DEFAULT NOW(),
-    scanned_by INT REFERENCES users (id) ON DELETE SET NULL,
-    location   VARCHAR(255),
-    ip_address VARCHAR(50)
+    id                    SERIAL PRIMARY KEY,
+    product_id            INT REFERENCES products (id) ON DELETE CASCADE,
+    product_identities_id INT REFERENCES product_identities (id) ON DELETE CASCADE, --added
+    scanned_at            TIMESTAMP DEFAULT NOW(),
+    scanned_by            INT REFERENCES users (id) ON DELETE SET NULL,
+    location              jsonb,                                                    --updated
+    ip_address            VARCHAR(50)
 );
 
 CREATE TABLE customer_qr_codes
@@ -96,12 +100,13 @@ CREATE TABLE stripe_product
 
 CREATE TABLE purchases
 (
-    id              SERIAL PRIMARY KEY,
-    user_id         INT            REFERENCES users (id) ON DELETE SET NULL,
-    product_id      INT REFERENCES products (id) ON DELETE CASCADE,
-    purchase_date   TIMESTAMP DEFAULT NOW(),
-    purchased_price DECIMAL(10, 2) NOT NULL,
-    payment_status  SMALLINT CHECK (payment_status IN (0, 1, 2)), -- 0=pending, 1=paid, 2=failed
-    created_at      TIMESTAMP DEFAULT NOW(),
-    updated_at      TIMESTAMP DEFAULT NOW()
+    id                    SERIAL PRIMARY KEY,
+    user_id               INT            REFERENCES users (id) ON DELETE SET NULL,
+    product_id            INT REFERENCES products (id) ON DELETE CASCADE,
+    product_identities_id INT REFERENCES product_identities (id) ON DELETE CASCADE, --added
+    purchase_date         TIMESTAMP DEFAULT NOW(),
+    purchased_price       DECIMAL(10, 2) NOT NULL,
+    payment_status        SMALLINT CHECK (payment_status IN (0, 1, 2)),             -- 0=pending, 1=paid, 2=failed
+    created_at            TIMESTAMP DEFAULT NOW(),
+    updated_at            TIMESTAMP DEFAULT NOW()
 );

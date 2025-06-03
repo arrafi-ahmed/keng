@@ -6,6 +6,7 @@ definePage({
   name: "home",
   meta: {
     layout: "default",
+    title: "Dashboard",
   },
 });
 const store = useStore();
@@ -15,9 +16,11 @@ router.push(store.getters["user/calcHome"]);
 </script>
 
 <template>
-  <h2 class="d-flex justify-center align-center">
-    Welcome home from QuickStarter Client
-  </h2>
+  <div class="d-flex justify-center align-center text-center pa-5">
+    <h2 class="w-75">
+      Welcome Dashboard
+    </h2>
+  </div>
 </template>
 
 <style scoped></style>

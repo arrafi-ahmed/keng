@@ -9,6 +9,7 @@ const store = createStore({
   },
   state: () => ({
     progress: null,
+    snackbars: [],
     routeInfo: {},
   }),
   mutations: {
@@ -17,6 +18,12 @@ const store = createStore({
     },
     setRouteInfo(state, payload) {
       state.routeInfo = payload;
+    },
+    addSnackbar(state, payload) {
+      state.snackbars.push(payload);
+    },
+    setSnackbars(state, value) {
+      state.snackbars = value; // v-snackbar-queue will update this
     },
   },
   actions: {},

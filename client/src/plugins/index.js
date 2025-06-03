@@ -9,18 +9,7 @@ import vuetify from "./vuetify";
 import router from "../router";
 import store from "../store";
 import $axios from "@/plugins/axios";
-import {getQueryParam, removeQueryParams} from "@/others/util";
-
-function handleApiQueryMsg() {
-  //check if message came from server through query params
-  const apiQueryMsg = getQueryParam("apiQueryMsg");
-
-  if (apiQueryMsg) {
-    const newUrl = removeQueryParams(window.location.href, ["apiQueryMsg"]);
-    localStorage.setItem("apiQueryMsg", apiQueryMsg);
-    window.location.href = newUrl;
-  }
-}
+import { handleRedirect, handleRemoveQueriesNRedirect } from "@/others/util.js";
 
 function handleAuthRoutes(to, isSignedin, userRole) {
   if (to.matched.some((record) => record.meta.requiresNoAuth) && isSignedin) {
@@ -38,6 +27,13 @@ function handleAuthRoutes(to, isSignedin, userRole) {
 
 export function registerPlugins(app) {
   router.beforeEach((to, from, next) => {
+    if (
+      handleRedirect({
+        param: "backendRedirectUrl",
+      })
+    ) {
+      return; // Stop the execution of this guard, as a full page reload is happening
+    }
     //save routeinfo to state
     store.commit("setRouteInfo", { to, from });
 
@@ -47,7 +43,14 @@ export function registerPlugins(app) {
     if (redirectRoute) {
       next(redirectRoute);
     } else {
-      handleApiQueryMsg();
+      if (
+        handleRemoveQueriesNRedirect({
+          params: ["apiQueryMsg"],
+        })
+      ) {
+        // No need to call next() here, as window.location.replace will trigger a new navigation cycle
+        return;
+      }
       next();
     }
   });

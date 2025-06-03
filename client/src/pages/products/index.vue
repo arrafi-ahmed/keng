@@ -6,6 +6,8 @@ import { useRouter } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
 import Product from "@/models/Product.js";
 import ProductIdentity from "@/models/ProductIdentity.js";
+import { useDisplay } from "vuetify";
+import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
 
 definePage({
   name: "products",
@@ -15,36 +17,48 @@ definePage({
     requiresAuth: true,
   },
 });
+const { smAndUp } = useDisplay();
 const store = useStore();
 const router = useRouter();
 
-const productHeaders = ref([
+const productHeadersCommon = ref([
   {
     title: "Name",
     align: "start",
     key: "name",
   },
   {
-    title: "Product Id",
+    title: "Serial Number",
     align: "start",
     key: "productIdentities",
   },
+]);
+const productHeadersSmAndUp = ref([
   {
     title: "Price",
     align: "start",
     key: "price",
   },
   {
-    title: "Date of Creation",
+    title: "Created At",
     align: "start",
     key: "createdAt",
   },
-  {
+]);
+const productHeaders = computed(() => {
+  const actionHeader = {
     title: "",
     key: "actions",
     sortable: false,
-  },
-]);
+  };
+  if (smAndUp.value) {
+    return productHeadersCommon.value
+      .concat(productHeadersSmAndUp.value)
+      .concat(actionHeader);
+  } else {
+    return productHeadersCommon.value.concat(actionHeader);
+  }
+});
 
 const productList = computed(() => {
   return store.state.product.products.map((item) => ({
@@ -144,6 +158,10 @@ const handleSubmitProductAdd = async () => {
   });
 };
 
+const removeProduct = async ({ productId }) => {
+  await store.dispatch("product/removeProduct", { productId });
+};
+
 const fetchData = async () => {
   const res = await loadProductItems({ fetchTotalCount: true });
   totalCount.value = res.totalCount;
@@ -205,10 +223,7 @@ onMounted(async () => {
 
     <v-row>
       <v-col>
-        <v-sheet
-          class="pa-3"
-          color="white"
-        >
+        <v-sheet class="px-0 px-md-3">
           <v-data-table-server
             v-if="productList.length"
             :headers="productHeaders"
@@ -225,11 +240,61 @@ onMounted(async () => {
             <template #item.productIdentities="{ item }">
               <div v-if="item.productIdentities?.length > 0">
                 <div
-                  v-for="identity in item.productIdentities"
-                  :key="identity.piId"
+                  v-for="(identity, index) in item.productIdentities"
+                  :key="identity.id"
                 >
-                  {{ identity.identityType === 10 && "Serial: " }}
-                  {{ identity.identityNo }}
+                  <div class="d-flex align-center justify-space-between my-1">
+                    <span>
+                      {{ identity.identityNo }}
+                    </span>
+                    <v-menu>
+                      <template #activator="{ props }">
+                        <v-btn
+                          icon="mdi-dots-vertical"
+                          v-bind="props"
+                          variant="text"
+                          size="small"
+                          density="comfortable"
+                        />
+                      </template>
+                      <v-list density="compact">
+                        <v-list-item
+                          link
+                          prepend-icon="mdi-shield-check"
+                          title="Warranty"
+                          density="compact"
+                          @click="
+                            router.push({
+                              name: 'product-warranty',
+                              params: {
+                                productId: item.id,
+                                productIdentitiesId: identity.id,
+                              },
+                            })
+                          "
+                        />
+                        <v-list-item
+                          link
+                          prepend-icon="mdi-qrcode"
+                          title="Unit QR Code"
+                          density="compact"
+                          @click="
+                            router.push({
+                              name: 'qrcode-view-product-identity',
+                              params: {
+                                productId: item.id,
+                                productIdentitiesId: identity.id,
+                                uuid: identity.uuid,
+                              },
+                            })
+                          "
+                        />
+                      </v-list>
+                    </v-menu>
+                  </div>
+                  <v-divider
+                    v-if="index < item.productIdentities?.length - 1"
+                  />
                 </div>
               </div>
               <div v-else>
@@ -269,26 +334,33 @@ onMounted(async () => {
                   />
                   <v-list-item
                     link
-                    prepend-icon="mdi-shield-check"
-                    title="Warranty"
-                    @click="
-                      router.push({
-                        name: 'product-warranty',
-                        params: { productId: item.id },
-                      })
-                    "
-                  />
-                  <v-list-item
-                    link
                     prepend-icon="mdi-qrcode"
-                    title="QR Code"
+                    title="Product QR Code"
+                    density="compact"
                     @click="
                       router.push({
-                        name: 'qrcode-view',
-                        params: { productId: item.id, uuid: item.uuid },
+                        name: 'qrcode-view-product',
+                        params: {
+                          productId: item.id,
+                          uuid: item.uuid,
+                        },
                       })
                     "
                   />
+                  <v-divider class="my-1" />
+                  <confirmation-dialog
+                    @confirm="removeProduct({ productId: item.id })"
+                  >
+                    <template #activator="{ onClick }">
+                      <v-list-item
+                        class="text-error"
+                        link
+                        prepend-icon="mdi-delete"
+                        title="Delete"
+                        @click.stop="onClick"
+                      />
+                    </template>
+                  </confirmation-dialog>
                 </v-list>
               </v-menu>
             </template>

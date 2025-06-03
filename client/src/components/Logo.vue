@@ -29,7 +29,7 @@ const { imgSrc, title, imgClass, containerClass, maxWidth, width } =
       class="pl-2"
     >
       <component :is="xs ? 'h3' : 'h2'">
-        <span class="text-primary">{{ appInfo.name }}</span>
+        <span>{{ appInfo.name }}</span>
       </component>
     </div>
   </div>

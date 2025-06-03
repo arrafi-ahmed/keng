@@ -4,11 +4,9 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { computed, ref } from "vue";
 import { getClientPublicImageUrl, getToLink } from "@/others/util";
-import { useDisplay } from "vuetify";
 import UserAvatar from "@/components/UserAvatar.vue";
 
 const store = useStore();
-const { mobile } = useDisplay();
 const router = useRouter();
 
 const signedin = computed(() => store.getters["user/signedin"]);
@@ -40,15 +38,15 @@ const getGreetings = computed(() => {
   <v-app-bar
     :order="1"
     class="px-2 px-md-5"
-    color="grey-lighten-3"
     dense
     density="compact"
     flat
+    color="background"
   >
     <logo
       :img-src="getClientPublicImageUrl('logo.png')"
       :title="true"
-      :width="40"
+      :width="30"
       container-class="clickable"
       img-class="mx-auto"
       @click="router.push(calcHome)"
@@ -57,26 +55,40 @@ const getGreetings = computed(() => {
     <template #append>
       <v-btn
         v-if="signedin"
-        :size="mobile ? 'small' : 'default'"
-        icon
-        rounded
-        tile
+        rounded="pill"
+        variant="elevated"
+        @click="drawer = !drawer"
       >
-        <user-avatar
-          :img-src="currentUser.image"
-          @click-avatar="drawer = !drawer"
-        />
+        <template #prepend>
+          <v-avatar :size="25">
+            <v-icon :size="25">
+              mdi-account-circle
+            </v-icon>
+          </v-avatar>
+        </template>
+        <template #default>
+          <span class="text-body-2 text-capitalize">{{
+            currentUser.name ? currentUser.name.split(" ")[0] : ""
+          }}</span>
+        </template>
+        <template #append>
+          <v-icon :icon="drawer ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+        </template>
       </v-btn>
     </template>
   </v-app-bar>
   <v-navigation-drawer
     v-if="signedin"
     v-model="drawer"
-    :width="200"
+    :width="220"
     location="end"
     temporary
+    color="primary"
   >
-    <v-list>
+    <v-list
+      nav
+      density="compact"
+    >
       <v-list-item>
         <div class="d-flex justify-start align-center">
           <user-avatar
@@ -107,7 +119,7 @@ const getGreetings = computed(() => {
         <v-btn
           :to="{ name: 'signout' }"
           block
-          color="primary"
+          color="secondary"
           prepend-icon="mdi-exit-to-app"
         >
           Signout

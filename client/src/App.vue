@@ -1,11 +1,19 @@
 <script setup>
-import { Toaster } from "vue-sonner";
 import ProgressLoader from "@/components/ProgressLoader.vue";
 import { watch } from "vue";
 import { useRoute } from "vue-router";
 import { appInfo } from "@/others/util";
+import { useStore } from "vuex";
 
 const route = useRoute();
+const store = useStore();
+
+const snackbars = computed(() => store.state.snackbars);
+
+// Handle Vuetify's update
+const setSnackbars = (val) => {
+  store.commit("setSnackbars", val);
+};
 
 watch(route, (to) => {
   document.title =
@@ -14,15 +22,15 @@ watch(route, (to) => {
 </script>
 <template>
   <v-app>
-    <v-main>
+    <v-main class="bg-tertiary">
       <progress-loader />
-      <Toaster
-        :expand="true"
-        class="custom-toast"
-        close-button
-        position="bottom-left"
-        rich-colors
-        theme="dark"
+      <v-snackbar-queue
+        :model-value="snackbars"
+        location="bottom start"
+        closable
+        timer
+        :timeout="4000"
+        @update:model-value="setSnackbars"
       />
       <router-view />
     </v-main>
@@ -33,11 +41,6 @@ watch(route, (to) => {
 
 .v-application {
   font-family: "Poppins", sans-serif;
-}
-
-body,
-.custom-toast {
-  font-family: "Poppins", sans-serif !important;
 }
 
 .clickable {
@@ -74,6 +77,24 @@ body,
 
 .max-content {
   min-width: max-content;
+}
+
+.text-truncate-multi-line {
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Still needed for broad current support */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+
+  /* For future compatibility when line-clamp is widely adopted */
+  /* Note: This might require specific display properties in the future */
+  /* display: block; */ /* Or whatever is needed for the new line-clamp spec */
+  /* line-clamp: 2; */ /* The future standard, currently limited support */
+}
+
+.v-carousel {
+  height: inherit !important;
 }
 
 .scrollable-container {
