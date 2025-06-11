@@ -16,7 +16,7 @@ const progress = computed(() => store.state.progress);
       :height="5"
       absolute
       class="position-fixed"
-      color="primary"
+      color="secondary"
       indeterminate
       reverse
       rounded

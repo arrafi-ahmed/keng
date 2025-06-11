@@ -11,7 +11,6 @@ $axios.interceptors.request.use((config) => {
   if (token) {
     config.headers["Authorization"] = token;
   }
-  console.log(35, config);
   return config;
 });
 

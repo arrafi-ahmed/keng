@@ -13,18 +13,25 @@
   "author": "Arrafi Ahmed",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^7.0.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
+    "handlebars": "^4.7.8",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mime-types": "^3.0.1",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.9.7",
     "postgres": "^3.4.3",
+    "qrcode": "^1.5.4",
     "sharp": "^0.34.1",
-    "uuid": "^9.0.1"
+    "stripe": "^18.2.1",
+    "unzipper": "^0.12.3",
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"

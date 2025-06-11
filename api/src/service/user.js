@@ -2,12 +2,13 @@ const jwt = require("jsonwebtoken");
 const CustomError = require("../model/CustomError");
 const { sql } = require("../db");
 const { hash, compare } = require("bcrypt");
+const { v4: uuidv4 } = require("uuid");
 const {
   generatePassResetContent,
   appInfo,
   VUE_BASE_URL,
 } = require("../helpers/util");
-const { sendMail } = require("./sendMail");
+const { sendMail, sendPasswordResetEmail } = require("./emailService");
 
 const generateAuthData = (result) => {
   let token = "";
@@ -34,8 +35,8 @@ exports.save = async ({ payload }) => {
   let savedUser = null;
   try {
     [savedUser] = await sql`
-            insert into users ${sql(user)} on conflict(id) do
-            update set ${sql(user)} returning *`;
+      insert into users ${sql(user)} on conflict(id) do
+      update set ${sql(user)} returning *`;
   } catch (err) {
     if (err.code === "23505")
       throw new CustomError("Email already taken!", 409);
@@ -58,17 +59,17 @@ exports.signin = async ({ payload: { email, password } }) => {
 
 exports.getUserByEmail = async ({ email }) => {
   const [user] = await sql`
-        select *
-        from users
-        where email = ${email}`;
+    select *
+    from users
+    where email = ${email}`;
   return user;
 };
 
 exports.getUserById = async ({ id }) => {
   const [user] = await sql`
-        select *
-        from users
-        where id = ${id}`;
+    select *
+    from users
+    where id = ${id}`;
   return user;
 };
 
@@ -83,19 +84,22 @@ exports.requestResetPass = async ({ payload: { resetEmail } }) => {
     createdAt: new Date(),
   };
   const [savedReq] = await sql`
-        insert into password_reset ${sql(reset)} on conflict(id) do
-        update set ${sql(reset)}
-            returning *`;
+    insert into password_reset ${sql(reset)} on conflict(id) do
+    update set ${sql(reset)}
+      returning *`;
 
-  const html = generatePassResetContent(savedReq.token, VUE_BASE_URL);
-  return sendMail(resetEmail, `${appInfo.name} Password reset link`, html);
+  await sendPasswordResetEmail({
+    to: fetchedUser.email,
+    user: fetchedUser,
+    token: savedReq.token,
+  });
 };
 
 exports.submitResetPass = async ({ payload: { token, newPass } }) => {
   const [reset] = await sql`
-        select *
-        from password_reset
-        where token = ${token}`;
+    select *
+    from password_reset
+    where token = ${token}`;
   if (!reset) throw new CustomError("Invalid request!");
 
   const expirationMillis = reset.createdAt.getTime() + 3600000; // 1 hour in milliseconds

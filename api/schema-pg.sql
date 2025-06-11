@@ -16,7 +16,7 @@ CREATE TABLE products
     description     TEXT,
     uuid            TEXT,
     price           DECIMAL(10, 2) NOT NULL,
-    available_stock INT default 0, --added
+    available_stock INT       default 0, --added
     created_at      TIMESTAMP DEFAULT NOW(),
     updated_at      TIMESTAMP DEFAULT NOW(),
     user_id         INT REFERENCES users (id) ON DELETE CASCADE
@@ -75,6 +75,7 @@ CREATE TABLE qr_code_scans
     id                    SERIAL PRIMARY KEY,
     product_id            INT REFERENCES products (id) ON DELETE CASCADE,
     product_identities_id INT REFERENCES product_identities (id) ON DELETE CASCADE, --added
+    scan_type             VARCHAR(50) CHECK (scan_type IN ('model', 'unit')),
     scanned_at            TIMESTAMP DEFAULT NOW(),
     scanned_by            INT REFERENCES users (id) ON DELETE SET NULL,
     location              jsonb,                                                    --updated
@@ -86,7 +87,7 @@ CREATE TABLE customer_qr_codes
     id         SERIAL PRIMARY KEY,
     user_id    INT REFERENCES users (id) ON DELETE CASCADE,
     qr_code    TEXT NOT NULL,
-    purpose    VARCHAR(255),
+    title      VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW()
 );
 

@@ -1,15 +1,37 @@
 const fs = require("fs").promises;
 const path = require("path");
+const qr = require("qrcode");
 const { fileConfig } = require("./fileFields");
 const { API_BASE_URL, VUE_BASE_URL, ANDROID_BASE_URL, LOCATIONIQ_API_KEY } =
   process.env;
-
 const appInfo = { name: "QuickStarter", version: 1.0 };
 
 const excludedSecurityURLs = [
   "/product/getPublicProductNScan",
   "/product/getWarrantyNScan",
 ];
+
+const getCurrencySymbol = ({ code, type }) => {
+  const codeLower = code.toString().toLowerCase();
+
+  const currencyMap = {
+    usd: { icon: "mdi-currency-usd", symbol: "$", code: "usd" },
+    gbp: { icon: "mdi-currency-gbp", symbol: "£", code: "gbp" },
+    eur: { icon: "mdi-currency-eur", symbol: "€", code: "eur" },
+    thb: { icon: "mdi-currency-thb", symbol: "฿", code: "thb" },
+  };
+
+  const currencyData = currencyMap[codeLower];
+  if (!currencyData) {
+    return null; // Or undefined, or throw an error, depending on your desired behavior
+  }
+  if (type === undefined) {
+    return currencyData;
+  }
+  return currencyData[type];
+};
+
+const defaultCurrency = getCurrencySymbol({ code: "thb" });
 
 const formatDate = (inputDate) => {
   const date = new Date(inputDate);
@@ -30,27 +52,6 @@ const removeOtherParams = (obj, allowedKeys) => {
   return obj;
 };
 
-const emailFooter = `   
-    <br>
-    <p>Best wishes,<br>
-    The <strong>${appInfo.name}</strong> Team</p>`;
-
-const generatePassResetContent = (token) => {
-  return `
-    <p>Greetings!</p>
-
-    <p>We received a request to reset your password. To proceed, please click the button below. This link will be valid for the next 1 hour:</p>
-
-    <p><a href="${VUE_BASE_URL}/reset-password/?token=${token}">
-      <button style="background-color: #e40046; color: white; border: none; padding: 10px;">Reset Password</button>
-    </a></p>
-
-    <p>If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
-
-    ${emailFooter}
-  `;
-};
-
 const moveImage = (sourcePath, destinationPath) => {
   return new Promise((resolve, reject) => {
     fs.rename(sourcePath, destinationPath, (err) => {
@@ -65,6 +66,26 @@ const moveImage = (sourcePath, destinationPath) => {
 
 const generateFilename = ({ prefix, ext }) => {
   return `${prefix || "file"}-${Date.now()}-${Math.round(Math.random() * 1e5)}${ext}`;
+};
+
+const generateImportedFileName = ({
+  prefix,
+  currTime,
+  userId,
+  baseFilename,
+  ext,
+}) => {
+  let parts = [];
+
+  if (prefix) parts.push(prefix);
+  if (currTime) parts.push(currTime); // Expect currTime to be formatted (e.g., string or number)
+  if (userId) parts.push(userId);
+  if (baseFilename) parts.push(baseFilename);
+
+  if (!ext) {
+    return parts.join("-");
+  }
+  return `${parts.join("-")}${ext}`;
 };
 
 const getPrefix = (filename) => {
@@ -98,21 +119,8 @@ const removeFiles = async (fileArr) => {
       }
     }),
   );
-  console.log(99, deletionResults);
 
   return deletionResults;
-};
-
-const getCurrencySymbol = (currencyCode, type) => {
-  const currencyCodeLower = currencyCode.toString().toLowerCase();
-
-  const currencyMap = {
-    usd: { icon: "mdi-currency-usd", symbol: "$" },
-    gbp: { icon: "mdi-currency-gbp", symbol: "£" },
-    eur: { icon: "mdi-currency-eur", symbol: "€" },
-  };
-
-  return currencyMap[currencyCodeLower][type];
 };
 
 const getClientIP = (req) => {
@@ -179,7 +187,18 @@ const reverseGeocode = async ({ latitude, longitude }) => {
   }
 };
 
-// const generateQrCode = async (data) => await qr.toDataURL(data);
+const generateQrCode = async ({ productId, productIdentitiesId, uuid }) => {
+  const params = new URLSearchParams();
+  params.append('uuid', uuid);
+  params.append('scanned', 1);
+
+  const route = `${VUE_BASE_URL}/products/${productId}/${productIdentitiesId}?${params.toString()}`;
+
+  const qrCodeDataUrl = await qr.toDataURL(route);
+  return qrCodeDataUrl.split(",")[1]; // return only base64 portion
+};
+
+
 // const logoSvgString = fsSync.readFileSync(
 //   path.join(__dirname, "./logo.svg"),
 //   "utf8"
@@ -191,11 +210,13 @@ module.exports = {
   ANDROID_BASE_URL,
   excludedSecurityURLs,
   appInfo,
+  defaultCurrency,
   getCurrencySymbol,
-  generatePassResetContent,
   moveImage,
   getPrefix,
   generateFilename,
+  generateImportedFileName,
+  generateQrCode,
   getFilePath,
   removeFiles,
   formatDate,

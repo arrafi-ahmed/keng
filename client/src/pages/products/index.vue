@@ -8,6 +8,7 @@ import Product from "@/models/Product.js";
 import ProductIdentity from "@/models/ProductIdentity.js";
 import { useDisplay } from "vuetify";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
+import { defaultCurrency } from "@/others/util.js";
 
 definePage({
   name: "products",
@@ -173,24 +174,13 @@ onMounted(async () => {
 
 <template>
   <v-container>
-    <v-row
-      align="center"
-      justify="space-between"
-    >
+    <v-row align="center" justify="space-between">
       <v-col>
-        <page-title
-          :border-b="true"
-          :show-back="true"
-          title="Products"
-        >
+        <page-title :border-b="true" :show-back="true" title="Products">
           <v-row align="center">
             <v-menu>
               <template #activator="{ props }">
-                <v-btn
-                  icon="mdi-dots-vertical"
-                  v-bind="props"
-                  variant="text"
-                />
+                <v-btn icon="mdi-dots-vertical" v-bind="props" variant="text" />
               </template>
               <v-list density="compact">
                 <v-list-item
@@ -280,7 +270,7 @@ onMounted(async () => {
                           density="compact"
                           @click="
                             router.push({
-                              name: 'qrcode-view-product-identity',
+                              name: 'qrcode-view-unit',
                               params: {
                                 productId: item.id,
                                 productIdentitiesId: identity.id,
@@ -297,13 +287,11 @@ onMounted(async () => {
                   />
                 </div>
               </div>
-              <div v-else>
-                No data
-              </div>
+              <div v-else>No data</div>
             </template>
 
             <template #item.price="{ item }">
-              ${{ parseFloat(item.price).toFixed(2) }}
+              {{defaultCurrency.symbol}} {{ parseFloat(item.price).toFixed(2) }}
             </template>
 
             <template #item.createdAt="{ item }">
@@ -335,11 +323,11 @@ onMounted(async () => {
                   <v-list-item
                     link
                     prepend-icon="mdi-qrcode"
-                    title="Product QR Code"
+                    title="Model QR Code"
                     density="compact"
                     @click="
                       router.push({
-                        name: 'qrcode-view-product',
+                        name: 'qrcode-view-model',
                         params: {
                           productId: item.id,
                           uuid: item.uuid,
@@ -382,22 +370,13 @@ onMounted(async () => {
               </div>
             </template>
           </v-data-table-server>
-          <no-items
-            v-else
-            :closable="false"
-            img-src="src/assets/icons/empty-state-1.png"
-            variant="image"
-          />
+          <no-items v-else />
         </v-sheet>
       </v-col>
     </v-row>
   </v-container>
 
-  <v-dialog
-    v-model="productDialog"
-    :width="500"
-    persistent
-  >
+  <v-dialog v-model="productDialog" :width="500" persistent>
     <v-card>
       <v-card-title class="d-flex justify-space-between">
         <h2>Add Product</h2>

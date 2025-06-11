@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your Purchase Confirmation - {{appInfo.name}}</title>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+            rel="stylesheet"
+    />
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #0d1117; /* Darker background */
+            color: #e6edf3; /* Lighter text for contrast */
+            padding: 0;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .email-wrapper {
+            background-color: #0d1117;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #161b22; /* Slightly lighter container */
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #21262d;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-width: 150px; /* Adjust as needed for your logo */
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #58a6ff; /* A vibrant blue for the main heading */
+            font-size: 28px;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: #58a6ff;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: #58a6ff;
+            font-size: 20px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .product-summary {
+            background-color: #21262d; /* Slightly darker background for product details */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .product-summary strong {
+            color: #79c0ff; /* Lighter blue for emphasis */
+            font-size: 1.1em;
+        }
+
+        .order-details ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .order-details li {
+            margin-bottom: 10px;
+            padding-left: 0; /* Remove default list padding */
+        }
+
+        .order-details strong {
+            color: #79c0ff;
+            display: inline-block;
+            width: 120px; /* Align labels */
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background-color: #58a6ff; /* Primary action button color */
+            color: white !important; /* Ensure text color is white */
+            padding: 15px 25px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #79c0ff; /* Lighter on hover */
+        }
+
+        .footer {
+            font-size: 0.85em;
+            color: #8b949e; /* Muted gray for footer */
+            margin-top: 30px;
+            text-align: center;
+            border-top: 1px solid #21262d;
+            padding-top: 20px;
+        }
+
+        .footer a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media only screen and (max-width: 600px) {
+            .container {
+                border-radius: 0;
+                padding: 20px;
+                margin: 0;
+            }
+
+            .email-wrapper {
+                padding: 0;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            h3 {
+                font-size: 18px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-wrapper">
+    <div class="container">
+        <div class="header">
+            <h1>Purchase Confirmation</h1>
+        </div>
+
+        <h2>Hi {{ user.name }},</h2>
+
+        <p>Thank you for your recent purchase from {{appInfo.name}}! We're excited for you to get started with
+            your new item.</p>
+
+        <div class="product-summary">
+            <p>This email confirms your purchase of</p>
+            <p>
+                <strong>{{ product.name }}</strong> for
+                <strong>{{currency}}{{ purchased_price }}</strong>.
+            </p>
+        </div>
+
+        <h3>Order Details</h3>
+        <div class="order-details">
+            <ul>
+                <li><strong>Order ID:</strong> {{ purchase.id }}</li>
+                <li><strong>Date:</strong> {{ purchase_date }}</li>
+                <li><strong>Payment Status:</strong> Paid</li>
+            </ul>
+        </div>
+
+        <h3>Product Serial & QR Code</h3>
+        <div class="order-details">
+            <ul>
+                <li><strong>Serial Number:</strong> {{ serial }}</li>
+            </ul>
+            <div style="text-align:center; margin-top: 15px;">
+                <img src="data:image/png;base64,{{ qrCode }}" alt="QR Code" style="width:200px;" />
+            </div>
+        </div>
+
+
+        <p>
+            You can access your product, view your full order history, or manage
+            warranty details directly from your account dashboard.
+        </p>
+
+        <div class="btn-container">
+            <a href="{{ links.dashboard }}" class="btn">Go to Your Dashboard</a>
+        </div>
+
+        <p>
+            We hope you enjoy your purchase! If you have any questions or need
+            assistance, please don't hesitate to reach out.
+        </p>
+
+        <div class="footer">
+            <p>
+                This email was sent by {{appInfo.name}}.
+            </p>
+            <p>
+                <a href="{{ links.home }}">Visit our Website</a> |
+                <a href="mailto:{{links.support}}">Contact Support</a>
+            </p>
+            <p>
+                If you have any questions, simply reply to this email, and our
+                support team will be happy to help.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

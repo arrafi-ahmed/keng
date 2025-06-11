@@ -6,10 +6,10 @@ import PageTitle from "@/components/PageTitle.vue";
 import { clientBaseUrl } from "@/others/util.js";
 
 definePage({
-  name: "qrcode-view-product-identity",
+  name: "qrcode-view-unit",
   meta: {
     layout: "default",
-    title: "View Unit QR Code",
+    title: "Unit QR Code",
     requiresAuth: true,
   },
 });

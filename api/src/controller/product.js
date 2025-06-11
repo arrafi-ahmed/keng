@@ -101,7 +101,6 @@ router.post(
   async (req, res, next) => {
     try {
       const payload = { ...req.body };
-      console.log(32, payload);
       const product = await productService.getPublicProduct({
         payload: { productId: payload.newScan.productId, uuid: payload.uuid },
       });
@@ -136,7 +135,6 @@ router.post(
   async (req, res, next) => {
     try {
       const payload = { ...req.body };
-      console.log(41, payload);
       const product = await productService.getProductWIdentity({
         payload: {
           productId: payload.newScan.productId,
@@ -178,21 +176,21 @@ router.post(
 
 router.get("/getWarrantyWProduct", auth, async (req, res, next) => {
   try {
-    console.log(42, req.query);
     const warranty = await productService.getWarranty({
       payload: {
         productIdentitiesId: req.query.productIdentitiesId,
-        uuid: req.query.uuid || 'invalidIfNotPresent',
+        uuid: req.query.uuid || "invalidIfNotPresent",
       },
     });
-
-    if (!warranty?.id) {
-      throw new CustomError("Invalid Request!", 404);
-    }
 
     const product = await productService.getPublicProduct({
       payload: { productId: req.query.productId },
     });
+
+    if (!warranty?.id) {
+      res.status(200).json(new ApiResponse(null, { product }));
+    }
+
     res.status(200).json(new ApiResponse(null, { warranty, product }));
   } catch (err) {
     next(err);
@@ -202,6 +200,17 @@ router.get("/getWarrantyWProduct", auth, async (req, res, next) => {
 router.get("/getWarranty", auth, (req, res, next) => {
   productService
     .getWarranty({
+      payload: { ...req.query },
+    })
+    .then((result) => {
+      res.status(200).json(new ApiResponse(null, result));
+    })
+    .catch((err) => next(err));
+});
+
+router.get("/getProductIdentity", auth, (req, res, next) => {
+  productService
+    .getProductIdentity({
       payload: { ...req.query },
     })
     .then((result) => {
@@ -221,11 +230,46 @@ router.get("/downloadManual", (req, res, next) => {
   res.download(filePath, (err) => {
     if (err) {
       console.error("Error sending file:", err);
-      res.status(500).json({ message: "Could not download the file." });
+      res
+        .status(500)
+        .json(new ApiResponse("Could not download the file", null));
     } else {
       console.log("File sent successfully.");
     }
   });
+});
+
+router.post("/bulkImport", auth, uploadFiles(), async (req, res, next) => {
+  try {
+    const zipFile = req.files?.importZip?.[0];
+    if (!zipFile) return res.status(400).json({ message: "ZIP file required" });
+
+    const result = await productService.bulkImport({
+      zipFile,
+      userId: req.currentUser.id,
+    });
+    res.json(new ApiResponse(`${result.productCount} Products imported successfully!`, result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/bulkExport", auth, async (req, res, next) => {
+  try {
+    const userId = req.currentUser?.id;
+
+    const stream = await productService.bulkExport({ userId });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=product-export.zip",
+    );
+    res.setHeader("Content-Type", "application/zip");
+
+    stream.pipe(res);
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

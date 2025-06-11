@@ -15,7 +15,7 @@ const router = createRouter({
 });
 
 // router.beforeEach((to, from, next) => {
-//   if (to.name === "dashboard") {
+//   if (to.name === "admin") {
 //     next({ name: 'home' });
 //   } else {
 //     next();

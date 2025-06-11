@@ -13,14 +13,36 @@ const signedin = computed(() => store.getters["user/signedin"]);
 const currentUser = computed(() => store.getters["user/getCurrentUser"]);
 const calcHome = computed(() => store.getters["user/calcHome"]);
 
-const isSudo = computed(() => store.getters["user/isSudo"]);
+const isAdmin = computed(() => store.getters["user/isAdmin"]);
+const isCustomer = computed(() => store.getters["user/isCustomer"]);
 
-const menuItemsSudo = [{ title: "Products", to: { name: "products" } }];
+const menuItemsAdmin = [
+  { title: "Products", to: { name: "products" } },
+  {
+    title: "Import/Export",
+    to: {
+      name: "importExport",
+    },
+  },
+];
+
+const menuItemsCustomer = [
+  { title: "QR Codes", to: { name: "qr-code-listing" } },
+  {
+    title: "Warranty Status",
+    to: {
+      name: "warranty-status",
+    },
+  },
+];
 
 const menuItems = computed(() => {
   let items = [{ title: "Home", to: calcHome.value }];
-  if (isSudo.value) {
-    items = items.concat(menuItemsSudo);
+  if (isAdmin.value) {
+    items = items.concat(menuItemsAdmin);
+  }
+  if (isCustomer.value) {
+    items = items.concat(menuItemsCustomer);
   }
   return items;
 });
@@ -61,9 +83,7 @@ const getGreetings = computed(() => {
       >
         <template #prepend>
           <v-avatar :size="25">
-            <v-icon :size="25">
-              mdi-account-circle
-            </v-icon>
+            <v-icon :size="25"> mdi-account-circle</v-icon>
           </v-avatar>
         </template>
         <template #default>
@@ -85,10 +105,7 @@ const getGreetings = computed(() => {
     temporary
     color="primary"
   >
-    <v-list
-      nav
-      density="compact"
-    >
+    <v-list nav density="compact">
       <v-list-item>
         <div class="d-flex justify-start align-center">
           <user-avatar

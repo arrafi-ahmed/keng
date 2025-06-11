@@ -25,6 +25,11 @@ const fileConfig = {
     dir: path.join(publicDir, "product-manuals"),
     // Not compressed
   },
+  importZip: {
+    fieldname: "importZip",
+    dir: path.join(publicDir, "tmp"),
+    // Not compressed
+  },
 };
 
 const getConfigByFieldname = (fieldname) => {

@@ -13,11 +13,11 @@ const auth = (req, res, next) => {
   }
 };
 
-const isSudo = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   const currentUser = req.currentUser;
   if (!currentUser) res.status(400).json({ message: "Invalid request" });
   try {
-    if (currentUser.role.toLowerCase() === "sudo") next();
+    if (Number.parseInt(currentUser.role) === 10) next();
   } catch (error) {
     return res.status(400).json({ message: "Invalid request" });
   }
@@ -67,7 +67,7 @@ const isAuthenticated = (req, res, next) => {
 
 module.exports = {
   auth,
-  isSudo,
+  isAdmin,
   isAuthenticated,
   // isAdminEventAuthor,
 };

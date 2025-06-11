@@ -20,15 +20,18 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 // Uncomment if Stripe webhook is needed
-// app.use(
-//   "/api/webhook",
-//   express.raw({ type: "application/json" }),
-//   require("./src/controller/subscription")
-// );
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  require("./src/controller/stripe").webhook,
+);
 
 // Routes
 app.use("/api/user", require("./src/controller/user"));
 app.use("/api/product", require("./src/controller/product"));
+app.use("/api/scanAnalytics", require("./src/controller/scanAnalytics"));
+app.use("/api/customerInsights", require("./src/controller/customerInsights"));
+app.use("/api/stripe", require("./src/controller/stripe").router);
 
 app.get("/api/info", (req, res) => {
   res.status(200).json(appInfo);

@@ -6,10 +6,10 @@ import PageTitle from "@/components/PageTitle.vue";
 import { clientBaseUrl } from "@/others/util.js";
 
 definePage({
-  name: "qrcode-view-product",
+  name: "qrcode-view-model",
   meta: {
     layout: "default",
-    title: "View Product QR Code",
+    title: "Model QR Code",
     requiresAuth: true,
   },
 });
@@ -45,7 +45,7 @@ const qrOptions = {
         <page-title
           :border-b="true"
           :show-back="true"
-          title="Product QR Code"
+          title="Model QR Code"
         />
       </v-col>
     </v-row>

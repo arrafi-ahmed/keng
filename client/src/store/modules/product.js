@@ -5,6 +5,7 @@ export const namespaced = true;
 export const state = {
   product: {},
   warranty: {},
+  productIdentity: {},
   products: [],
 };
 
@@ -17,6 +18,9 @@ export const mutations = {
   },
   setWarranty(state, payload) {
     state.warranty = payload;
+  },
+  setProductIdentity(state, payload) {
+    state.productIdentity = payload;
   },
   addProduct(state, payload) {
     state.products.unshift(payload);
@@ -42,9 +46,6 @@ export const mutations = {
 export const actions = {
   async save({ commit }, request) {
     const response = await $axios.post("/api/product/save", request);
-    // const actionType = request.id ? "edit" : "add";
-    // const actionName = `${actionType}Product`;
-    // commit(actionName, response.data?.payload);
     return response.data?.payload;
   },
 
@@ -79,8 +80,21 @@ export const actions = {
     return response.data?.payload;
   },
 
+  async setProductIdentity({ commit }, request) {
+    const response = await $axios.get("/api/product/getProductIdentity", {
+      params: {
+        identityNo: request.identityNo,
+      },
+    });
+    commit("setProductIdentity", response.data?.payload);
+    return response.data?.payload;
+  },
+
   async setPublicProductNScan({ commit }, request) {
-    const response = await $axios.post("/api/product/getPublicProductNScan", request);
+    const response = await $axios.post(
+      "/api/product/getPublicProductNScan",
+      request,
+    );
     commit("setProduct", response.data?.payload);
     return response.data?.payload;
   },
@@ -96,7 +110,6 @@ export const actions = {
   },
 
   async setWarrantyWProduct({ commit }, request) {
-    console.log(39, request);
     const response = await $axios.get("/api/product/getWarrantyWProduct", {
       params: {
         productId: request.productId,
@@ -110,7 +123,10 @@ export const actions = {
   },
 
   async setWarrantyWProductNScan({ commit }, request) {
-    const response = await $axios.post("/api/product/getWarrantyWProductNScan", request);
+    const response = await $axios.post(
+      "/api/product/getWarrantyWProductNScan",
+      request,
+    );
     commit("setWarranty", response.data?.payload);
     return response.data?.payload;
   },
@@ -133,6 +149,27 @@ export const actions = {
     });
     commit("setProducts", response.data?.payload?.list);
     return response.data?.payload;
+  },
+
+  async bulkImport({ commit }, request) {
+    const response = await $axios.post("/api/product/bulkImport", request);
+    return response.data?.payload;
+  },
+
+  async bulkExport({ commit }, request) {
+    const response = await $axios.get("/api/product/bulkExport", {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: "application/zip",
+    });
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = "products-export.zip";
+    link.click();
+    window.URL.revokeObjectURL(link.href);
   },
 };
 

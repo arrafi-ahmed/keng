@@ -90,18 +90,21 @@ export const getters = {
   getCurrentUser(state) {
     return state.currentUser;
   },
-  isSudo(state) {
+  isAdmin(state) {
     return state.currentUser.role === 10;
+  },
+  isCustomer(state) {
+    return state.currentUser.role === 20;
   },
   signedin(state) {
     return !!state.token;
   },
   calcHome(state, getters) {
     // add all the app roles here, and their default home page
-    return getters.isSudo
-      ? { name: "home" }
-      : getters.signedin
-        ? { name: "home" }
+    return getters.isAdmin
+      ? { name: "admin-dashboard" }
+      : getters.isCustomer
+        ? { name: "customer-dashboard" }
         : { name: "signout" };
   },
 };

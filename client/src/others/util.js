@@ -5,7 +5,6 @@ export const appInfo = { name: "QuickStarter", version: 1.0 };
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const clientBaseUrl = import.meta.env.VITE_BASE_URL;
 export const isProd = import.meta.env.PROD;
-export const siteCurrency = { symbol: "$", code: "USD" };
 
 export const getSlug = (slug) =>
   slug
@@ -210,17 +209,25 @@ export const getCountryList = (filterName) => {
   return countries.map((item) => item[filterName]);
 };
 
-export const getCurrencySymbol = (currencyCode, type) => {
-  const currencyCodeLower = currencyCode.toString().toLowerCase();
-
+export const getCurrencySymbol = ({ code, type }) => {
+  const codeLower = code.toString().toLowerCase();
   const currencyMap = {
-    usd: { icon: "mdi-currency-usd", symbol: "$" },
-    gbp: { icon: "mdi-currency-gbp", symbol: "£" },
-    eur: { icon: "mdi-currency-eur", symbol: "€" },
+    usd: { icon: "mdi-currency-usd", symbol: "$", value: "usd" },
+    gbp: { icon: "mdi-currency-gbp", symbol: "£", value: "gbp" },
+    eur: { icon: "mdi-currency-eur", symbol: "€", value: "eur" },
+    thb: { icon: "mdi-currency-thb", symbol: "฿", value: "thb" },
   };
-
-  return currencyMap[currencyCodeLower][type];
+  const currencyData = currencyMap[codeLower];
+  if (!currencyData) {
+    return null; // Or undefined, or throw an error, depending on your desired behavior
+  }
+  if (type === undefined) {
+    return currencyData;
+  }
+  return currencyData[type];
 };
+
+export const defaultCurrency = getCurrencySymbol({ code: "thb" });
 
 export const getUserLocation = () => {
   return new Promise((resolve, reject) => {
