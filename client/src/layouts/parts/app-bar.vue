@@ -61,14 +61,13 @@ const getGreetings = computed(() => {
     :order="1"
     class="px-2 px-md-5"
     dense
-    density="compact"
     flat
     color="background"
   >
     <logo
       :img-src="getClientPublicImageUrl('logo.png')"
       :title="true"
-      :width="30"
+      :width="80"
       container-class="clickable"
       img-class="mx-auto"
       @click="router.push(calcHome)"

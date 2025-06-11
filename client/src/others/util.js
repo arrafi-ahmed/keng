@@ -1,7 +1,7 @@
 import { countries } from "@/others/country-list";
 import store from "@/store/index.js";
 
-export const appInfo = { name: "QuickStarter", version: 1.0 };
+export const appInfo = { name: "Quthentic", version: 1.0 };
 export const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const clientBaseUrl = import.meta.env.VITE_BASE_URL;
 export const isProd = import.meta.env.PROD;
