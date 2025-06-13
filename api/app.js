@@ -13,18 +13,18 @@ const { appInfo } = require("./src/helpers/util");
 
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(customHelmet);
-app.use(customCors);
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json());
-
 // Uncomment if Stripe webhook is needed
 app.post(
   "/api/stripe/webhook",
   express.raw({ type: "application/json" }),
   require("./src/controller/stripe").webhook,
 );
+
+// Middleware
+app.use(customHelmet);
+app.use(customCors);
+app.use(express.static(path.join(__dirname, "public")));
+app.use(express.json());
 
 // Routes
 app.use("/api/user", require("./src/controller/user"));

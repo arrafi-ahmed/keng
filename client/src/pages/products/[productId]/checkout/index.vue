@@ -5,7 +5,8 @@ import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
 import PageTitle from "@/components/PageTitle.vue";
 import { loadStripe } from "@stripe/stripe-js";
-import { defaultCurrency } from "@/others/util.js";
+import { defaultCurrency, getClientPublicImageUrl } from "@/others/util.js";
+import { useTheme } from "vuetify";
 
 definePage({
   name: "checkout",
@@ -19,33 +20,32 @@ definePage({
 const route = useRoute();
 const router = useRouter();
 const store = useStore();
+const theme = useTheme();
 
 const elementsAppearance = {
-  theme: "night", // built-in dark base
+  theme: "night",
   variables: {
-    colorPrimary: "#5C9EFF",
-    colorBackground: "#10141A",
-    colorText: "#ffffff",
-    colorTextSecondary: "#cccccc",
-    colorDanger: "#EF4444",
-
-    borderRadius: "8px",
+    colorPrimary: theme.current.value.colors.secondary,
+    colorBackground: theme.current.value.colors.background,
+    colorText: theme.current.value.colors["on-surface"],
+    colorTextSecondary: "#A7B7C2", // You can also map this if needed
+    colorDanger: theme.current.value.colors.error,
+    borderRadius: "6px",
     fontFamily: "Inter, sans-serif",
     spacingUnit: "5px",
   },
   rules: {
     ".Input": {
-      backgroundColor: "#1A1F28",
-      border: "1px solid #2A3A4A",
-      boxShadow: "none",
-      color: "#ffffff",
+      backgroundColor: theme.current.value.colors.surface,
+      border: `1px solid ${theme.current.value.colors.header}`,
+      color: theme.current.value.colors["on-surface"],
     },
     ".Input:focus": {
-      borderColor: "#5C9EFF",
-      boxShadow: "0 0 0 1px #5C9EFF",
+      borderColor: theme.current.value.colors.secondary,
+      boxShadow: `0 0 0 1px ${theme.current.value.colors.secondary}`,
     },
     ".Label": {
-      color: "#cccccc",
+      color: "#A7B7C2",
     },
   },
 };
@@ -61,13 +61,6 @@ const fetchedClientSecret = ref("");
 const fetchedProduct = ref({});
 
 const pay = async () => {
-  console.log(
-    6,
-    router.resolve({
-      name: "checkout-confirmation",
-      params: { productId: route.params.productId },
-    }).href,
-  );
   const { error, paymentIntent } = await stripe.confirmPayment({
     elements: elements.value,
     confirmParams: {
@@ -129,13 +122,13 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Checkout" :show-back="true" :border-b="true" />
+        <page-title :border-b="true" :show-back="true" title="Checkout" />
       </v-col>
     </v-row>
 
     <v-row align="center" justify="center">
       <v-col cols="12" md="8" sm="10">
-        <v-card :max-width="600" class="mx-auto" v-if="fetchedProduct.id">
+        <v-card v-if="fetchedProduct.id" :max-width="600" class="mx-auto">
           <v-card-title>{{ fetchedProduct.name }}</v-card-title>
           <v-card-subtitle>{{ fetchedProduct.description }}</v-card-subtitle>
           <v-card-text>
@@ -149,14 +142,27 @@ onMounted(async () => {
           <v-card-actions>
             <v-btn
               v-if="isCardMounted"
-              color="secondary"
-              variant="flat"
               block
+              color="primary"
+              variant="flat"
               @click="pay"
               >Pay Now
             </v-btn>
           </v-card-actions>
         </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row justify="center">
+      <v-col
+        cols="2"
+        class="text-center"
+      >
+        <v-img
+          :src="getClientPublicImageUrl('stripe.svg')"
+          alt="Powered by Stripe"
+          contain
+        />
       </v-col>
     </v-row>
   </v-container>

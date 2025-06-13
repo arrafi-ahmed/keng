@@ -3,6 +3,7 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
 import DashboardCard from "@/components/DashboardCard.vue";
+import { defaultCurrency, formatDate, formatDateTime } from "@/others/util.js";
 
 definePage({
   name: "customer-dashboard",
@@ -24,17 +25,22 @@ const totalCount = ref(0);
 const loading = ref(false);
 const headers = ref([
   {
-    title: "Product Name",
+    title: "Name",
     align: "start",
     key: "productName",
   },
   {
-    title: "Purchase Date",
+    title: "Serial",
+    align: "start",
+    key: "identityNo",
+  },
+  {
+    title: "Price",
     align: "start",
     key: "purchasedPrice",
   },
   {
-    title: "Purchase Date",
+    title: "Purchase Time",
     align: "start",
     key: "purchaseDate",
   },
@@ -61,6 +67,19 @@ const loadItems = ({ page, itemsPerPage }) => {
     });
 };
 
+const onRowClick = (event, { item }) => {
+  router.push({
+    name: "product-identity-single-landing",
+    params: {
+      productId: item.productId,
+      productIdentitiesId: item.productIdentitiesId,
+    },
+    query: {
+      uuid: item.uuid,
+    },
+  });
+};
+
 const fetchData = async () => {
   await Promise.allSettled([store.dispatch("customerInsights/setStats")]);
 };
@@ -73,41 +92,41 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Welcome to Dashboard" border-b></page-title>
+        <page-title border-b title="Welcome to Dashboard"></page-title>
       </v-col>
     </v-row>
 
     <v-row>
       <v-col>
         <dashboard-card
-          title="TOTAL PURCHASE"
-          :value="stats?.totalPurchase"
-          icon="mdi-cash"
           :iconSize="30"
+          :value="`${defaultCurrency.symbol}${stats?.totalPurchase}`"
+          icon="mdi-cash"
+          title="TOTAL PURCHASE"
         ></dashboard-card>
       </v-col>
       <v-col>
         <dashboard-card
-          title="ACTIVE WARRANTIES"
+          :iconSize="30"
           :value="stats?.activeWarranties"
           icon="mdi-shield"
-          :iconSize="30"
+          title="ACTIVE WARRANTIES"
         ></dashboard-card>
       </v-col>
       <v-col>
         <dashboard-card
-          title="QR CODES CREATED"
+          :iconSize="30"
           :value="stats?.totalQr"
           icon="mdi-qrcode"
-          :iconSize="30"
+          title="QR CODES CREATED"
         ></dashboard-card>
       </v-col>
       <v-col>
         <dashboard-card
-          title="TOTAL SCANS"
+          :iconSize="30"
           :value="stats?.totalScans"
           icon="mdi-select-all"
-          :iconSize="30"
+          title="TOTAL SCANS"
         ></dashboard-card>
       </v-col>
     </v-row>
@@ -119,12 +138,31 @@ onMounted(async () => {
           <v-data-table-server
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
-            :loading="loading"
             :items="recentPurchases"
             :items-length="totalCount"
+            :loading="loading"
             disable-sort
+            @click:row="onRowClick"
             @update:options="loadItems"
-          ></v-data-table-server>
+          >
+            <template #item.purchaseDate="{ item }">
+              {{ formatDateTime(item.purchaseDate) }}
+            </template>
+            <template #item.purchasedPrice="{ item }">
+              {{defaultCurrency.symbol}}{{ item.purchasedPrice }}
+            </template>
+            <template #item.warrantyStatus="{ item }">
+              <div v-if="item.warrantyStatus === 0" class="text-error">
+                Expired
+              </div>
+              <div v-else-if="item.warrantyStatus === 1" class="text-success">
+                Active
+              </div>
+              <div v-else>
+                Not Available
+              </div>
+            </template>
+          </v-data-table-server>
         </v-sheet>
       </v-col>
     </v-row>

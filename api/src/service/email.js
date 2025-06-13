@@ -41,8 +41,8 @@ const sendPurchaseConfirmation = async ({ to, user, product, purchase }) => {
     user,
     product,
     purchase,
-    purchased_price: purchase.purchased_price.toFixed(2),
-    purchase_date: new Date(purchase.purchase_date).toLocaleDateString(),
+    purchasedPrice: purchase.purchasedPrice,
+    purchaseDate: new Date(purchase.purchaseDate).toLocaleDateString(),
     currency: defaultCurrency.symbol,
     links: {
       home: VUE_BASE_URL,
@@ -58,7 +58,12 @@ const sendPurchaseConfirmation = async ({ to, user, product, purchase }) => {
 };
 
 // Compile password reset template once
-const resetTemplatePath = path.join(__dirname, "..", "templates", "passwordResetEmail.html");
+const resetTemplatePath = path.join(
+  __dirname,
+  "..",
+  "templates",
+  "passwordResetEmail.html",
+);
 const resetTemplateSource = fs.readFileSync(resetTemplatePath, "utf8");
 const compileResetTemplate = handlebars.compile(resetTemplateSource);
 

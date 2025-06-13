@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const productService = require("../service/product");
+const importExportService = require("../service/importExport");
 const ApiResponse = require("../model/ApiResponse");
 const uploadFiles = require("../middleware/upload");
 const compressImages = require("../middleware/compress");
@@ -110,15 +111,19 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      payload.newScan.ipAddress = getClientIP(req);
       const geocodedDetails = await reverseGeocode({
         latitude: payload.newScan.location.latitude,
         longitude: payload.newScan.location.longitude,
       });
-      payload.newScan.location = {
-        ...payload.newScan.location,
-        ...geocodedDetails,
-      };
+      payload.newScan = {
+        ...payload.newScan,
+        ipAddress : getClientIP(req),
+        scanType : 'model',
+        location : {
+          ...payload.newScan.location,
+          ...geocodedDetails,
+        }
+      }
       const savedScan = await productService.saveScan({
         payload: { newScan: payload.newScan },
       });
@@ -155,7 +160,6 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      payload.newScan.ipAddress = getClientIP(req);
       const geocodedDetails = await reverseGeocode({
         latitude: payload.newScan.location.latitude,
         longitude: payload.newScan.location.longitude,
@@ -164,6 +168,15 @@ router.post(
         ...payload.newScan.location,
         ...geocodedDetails,
       };
+      payload.newScan = {
+        ...payload.newScan,
+        ipAddress : getClientIP(req),
+        scanType : 'unit',
+        location : {
+          ...payload.newScan.location,
+          ...geocodedDetails,
+        }
+      }
       const savedScan = await productService.saveScan({
         payload: { newScan: payload.newScan },
       });
@@ -234,7 +247,6 @@ router.get("/downloadManual", (req, res, next) => {
         .status(500)
         .json(new ApiResponse("Could not download the file", null));
     } else {
-      console.log("File sent successfully.");
     }
   });
 });
@@ -244,11 +256,16 @@ router.post("/bulkImport", auth, uploadFiles(), async (req, res, next) => {
     const zipFile = req.files?.importZip?.[0];
     if (!zipFile) return res.status(400).json({ message: "ZIP file required" });
 
-    const result = await productService.bulkImport({
+    const result = await importExportService.bulkImport({
       zipFile,
       userId: req.currentUser.id,
     });
-    res.json(new ApiResponse(`${result.productCount} Products imported successfully!`, result));
+    res.json(
+      new ApiResponse(
+        `${result.productCount} Products imported successfully!`,
+        result,
+      ),
+    );
   } catch (err) {
     next(err);
   }
@@ -258,7 +275,7 @@ router.get("/bulkExport", auth, async (req, res, next) => {
   try {
     const userId = req.currentUser?.id;
 
-    const stream = await productService.bulkExport({ userId });
+    const stream = await importExportService.bulkExport({ userId });
 
     res.setHeader(
       "Content-Disposition",

@@ -127,7 +127,8 @@ export const actions = {
       "/api/product/getWarrantyWProductNScan",
       request,
     );
-    commit("setWarranty", response.data?.payload);
+    commit("setWarranty", response.data?.payload?.warranty);
+    commit("setProduct", response.data?.payload?.product);
     return response.data?.payload;
   },
 

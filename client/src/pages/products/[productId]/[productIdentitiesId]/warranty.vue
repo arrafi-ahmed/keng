@@ -49,10 +49,7 @@ onMounted(async () => {
 
 <template>
   <v-container>
-    <v-row
-      align="center"
-      justify="space-between"
-    >
+    <v-row align="center" justify="space-between">
       <v-col>
         <page-title
           :border-b="true"
@@ -73,8 +70,8 @@ onMounted(async () => {
           <date-picker
             v-model="newWarranty.warrantyStartDate"
             :rules="[(v) => !!v || 'Warranty Start Date is required!']"
-            custom-class="mt-2 mt-md-4"
             clearable
+            custom-class="mt-2 mt-md-4"
             density="comfortable"
             hide-details="auto"
             label="Warranty Start Date"
@@ -84,8 +81,8 @@ onMounted(async () => {
           <date-picker
             v-model="newWarranty.warrantyExpirationDate"
             :rules="[(v) => !!v || 'Warranty Expiration Date is required!']"
-            custom-class="mt-2 mt-md-4"
             clearable
+            custom-class="mt-2 mt-md-4"
             density="comfortable"
             hide-details="auto"
             label="Warranty Expiration Date"
@@ -99,11 +96,11 @@ onMounted(async () => {
               { title: 'No', value: false },
             ]"
             class="mt-2 mt-md-4"
+            density="comfortable"
+            hide-details="auto"
             item-title="title"
             item-value="value"
             label="Authenticity Confirmation"
-            density="comfortable"
-            hide-details="auto"
             rounded="lg"
             variant="outlined"
           />

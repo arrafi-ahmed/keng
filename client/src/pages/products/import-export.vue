@@ -1,10 +1,10 @@
 <script setup>
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { isValidEmail } from "@/others/util";
 import { useDisplay } from "vuetify";
 import PageTitle from "@/components/PageTitle.vue";
+import { getClientPublicImageUrl } from "@/others/util.js";
 
 definePage({
   name: "importExport", // Set the route name to 'signin'
@@ -79,19 +79,19 @@ const handleExport = async () => {
               <v-file-upload
                 v-model="importZip"
                 :hide-browse="false"
-                class="mt-2 mt-md-4"
                 accept=".zip"
-                show-size
+                class="mt-2 mt-md-4"
                 clearable
                 density="compact"
+                show-size
                 title="Upload zip"
                 variant="compact"
               />
 
               <v-btn
                 :density="mobile ? 'comfortable' : 'default'"
-                class="mt-2 mt-md-4"
                 block
+                class="mt-2 mt-md-4"
                 color="primary"
                 rounded="lg"
                 size="large"
@@ -118,8 +118,8 @@ const handleExport = async () => {
           <v-card-text>
             <v-btn
               :density="mobile ? 'comfortable' : 'default'"
-              class="mt-2 mt-md-4"
               block
+              class="mt-2 mt-md-4"
               color="primary"
               rounded="lg"
               size="large"
@@ -133,17 +133,16 @@ const handleExport = async () => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="instructionDialog" :width="450">
+  <v-dialog v-model="instructionDialog" :max-width="600">
     <v-card>
-      <v-card-title>Import instructions</v-card-title>
+      <v-card-title>How to Prepare Your Import Files</v-card-title>
       <v-card-text class="text-pre-wrap">
         <ul class="mx-3">
-          <li>Keep all the file name unique.
-          </li>
+          <li>Ensure all filenames are unique to avoid conflicts.</li>
           <li>
-            <div>Maintain folder structure like below:</div>
+            <div>Organize your ZIP file with the following folder structure:</div>
             <code>{{
-`import.zip
+                `import.zip
 ├── product-images/
 │    ├── image1.jpg
 │    ├── image2.png
@@ -157,13 +156,18 @@ const handleExport = async () => {
 │    ├── manual2.pdf
 │    └── ...
 └── products.xlsx`
-            }}</code>
+              }}</code>
           </li>
-
+          <li>
+            <div>In <code>products.xlsx</code>, include the following columns:</div>
+            <code>name	description	price	identities	images	manuals	certificates
+            </code>
+            <v-img class="mt-1" :src="getClientPublicImageUrl('sample-excel.png')"></v-img>
+          </li>
         </ul>
       </v-card-text>
       <v-card-actions>
-        <v-btn variant="flat" @click="instructionDialog = !instructionDialog">
+        <v-btn variant="flat" color="secondary" @click="instructionDialog = !instructionDialog">
           Close
         </v-btn>
       </v-card-actions>

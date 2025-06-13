@@ -55,7 +55,10 @@ export const actions = {
     return response.data?.payload;
   },
   async saveQrCode({ commit }, request) {
-    const response = await $axios.post("/api/customerInsights/saveQrCode", request);
+    const response = await $axios.post(
+      "/api/customerInsights/saveQrCode",
+      request,
+    );
     commit("addQrCode", response.data?.payload);
     return response.data?.payload;
   },

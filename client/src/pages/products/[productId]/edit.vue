@@ -45,10 +45,7 @@ const handleSubmitProductEdit = async () => {
     "productIdentities",
     JSON.stringify(newProduct.productIdentities),
   );
-  formData.append(
-    "removeFiles",
-    JSON.stringify(removeFiles),
-  );
+  formData.append("removeFiles", JSON.stringify(removeFiles));
   if (newProduct.productImages?.length > 0) {
     newProduct.productImages.forEach((file) => {
       formData.append("productImages", file);
@@ -88,7 +85,7 @@ onMounted(async () => {
     certificates: [],
     manuals: [],
   });
-  newProduct.productIdentities = product.value.productIdentities || []
+  newProduct.productIdentities = product.value.productIdentities || [];
   uploaded.certificates = product.value.productFiles?.filter(
     (item) => item.fileType === 10,
   );
@@ -100,16 +97,9 @@ onMounted(async () => {
 
 <template>
   <v-container>
-    <v-row
-      align="center"
-      justify="space-between"
-    >
+    <v-row align="center" justify="space-between">
       <v-col>
-        <page-title
-          :border-b="true"
-          :show-back="true"
-          title="Edit Product"
-        />
+        <page-title :border-b="true" :show-back="true" title="Edit Product" />
       </v-col>
     </v-row>
 
@@ -186,26 +176,26 @@ onMounted(async () => {
           </v-card>
 
           <file-uploader
-            v-model:uploading="newProduct.productImages"
             v-model:to-remove="removeFiles.productImages"
-            title="Product Images"
+            v-model:uploading="newProduct.productImages"
             :uploaded="product.productImages"
             file-prefix="product-images"
+            title="Product Images"
           />
           <file-uploader
-            v-model:uploading="newProduct.certificates"
             v-model:to-remove="removeFiles.productFiles"
-            title="Product certificates"
+            v-model:uploading="newProduct.certificates"
             :uploaded="uploaded.certificates"
             file-prefix="product-certificates"
+            title="Product certificates"
             variant="file"
           />
           <file-uploader
-            v-model:uploading="newProduct.manuals"
             v-model:to-remove="removeFiles.productFiles"
-            title="Product manuals"
+            v-model:uploading="newProduct.manuals"
             :uploaded="uploaded.manuals"
             file-prefix="product-manuals"
+            title="Product manuals"
             variant="file"
           />
           <v-card-actions class="mt-2 mt-md-4">

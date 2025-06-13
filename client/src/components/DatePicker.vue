@@ -35,11 +35,7 @@ onMounted(() => {
 </script>
 
 <template v-if="formattedDate">
-  <v-menu
-    v-model="menu"
-    :close-on-content-click="false"
-    location="center"
-  >
+  <v-menu v-model="menu" :close-on-content-click="false" location="center">
     <template #activator="{ props }">
       <v-text-field
         v-model="formattedDate"

@@ -21,12 +21,12 @@ const goHome = () => {
   <v-container class="fill-height d-flex align-center justify-center">
     <v-card
       class="text-center pa-6"
-      elevation="6"
-      rounded="lg"
       color="surface"
+      elevation="6"
       max-width="500"
+      rounded="lg"
     >
-      <v-icon size="64" color="secondary" class="mb-4"
+      <v-icon class="mb-4" color="secondary" size="64"
         >mdi-check-circle-outline
       </v-icon>
       <h2 class="text-h5 text-white">Payment Processing</h2>
@@ -38,9 +38,9 @@ const goHome = () => {
       <v-divider class="my-4" />
 
       <v-btn
-        color="secondary"
-        variant="flat"
         class="mt-2"
+        color="primary"
+        variant="flat"
         @click="router.push(store.getters['user/calcHome'])"
       >
         Return to Home

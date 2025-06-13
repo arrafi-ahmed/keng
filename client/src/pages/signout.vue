@@ -9,13 +9,11 @@ definePage({
 });
 
 const store = useStore();
-store
-  .dispatch("user/signout")
-  .then((res) => {
-    store.commit("addSnackbar", {
-      text: 'Signout successful!',
-      color: 'success',
-    });
-    window.location.href = "/signin";
-  })
+store.dispatch("user/signout").then((res) => {
+  store.commit("addSnackbar", {
+    text: "Signout successful!",
+    color: "success",
+  });
+  window.location.href = "/signin";
+});
 </script>

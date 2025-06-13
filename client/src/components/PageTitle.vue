@@ -36,16 +36,8 @@ const handleBackClick = () => {
 </script>
 
 <template>
-  <v-row
-    :class="customClass"
-    :justify="justify"
-    align="center"
-    no-gutters
-  >
-    <v-col
-      :cols="9"
-      class="d-flex align-center"
-    >
+  <v-row :class="customClass" :justify="justify" align="center" no-gutters>
+    <v-col :cols="9" class="d-flex align-center">
       <v-btn
         v-if="calcShowBack"
         class="mr-1"
@@ -64,10 +56,7 @@ const handleBackClick = () => {
           rounded
         />
         <div>
-          <div
-            v-if="subTitle"
-            class="text-overline"
-          >
+          <div v-if="subTitle" class="text-overline">
             {{ subTitle }}
           </div>
           <h2 v-if="title">

@@ -1,8 +1,7 @@
 const router = require("express").Router();
 const scanAnalyticsService = require("../service/scanAnalytics");
 const ApiResponse = require("../model/ApiResponse");
-const { auth, isAuthenticated, isAdmin } = require("../middleware/auth");
-const CustomError = require("../model/CustomError");
+const { auth, isAdmin } = require("../middleware/auth");
 
 router.get("/getScanAnalytics", auth, isAdmin, async (req, res, next) => {
   try {

@@ -6,6 +6,12 @@ import BarChart from "@/components/BarChart.vue";
 import NoItems from "@/components/NoItems.vue";
 import LineChart from "@/components/LineChart.vue";
 import DashboardCard from "@/components/DashboardCard.vue";
+import {
+  getBarChartOptions,
+  getCommonDatasetProps,
+  getLineChartOptions,
+} from "@/others/chartConfig.js";
+import { useTheme } from "vuetify/framework";
 
 definePage({
   name: "admin-dashboard",
@@ -45,6 +51,8 @@ const dailyScanChart = ref(null);
 const scanByCountryChart = ref(null);
 const scanByCityChart = ref(null);
 
+const commonDatasetProps = getCommonDatasetProps();
+
 const monthlyScanChartSrc = computed(() => {
   // Check if rawMonthlyScans.value is available and is an array
   if (!monthlyScanCount.value || !Array.isArray(monthlyScanCount.value)) {
@@ -65,30 +73,21 @@ const monthlyScanChartSrc = computed(() => {
         backgroundColor: "#bb66b0",
         borderColor: "#bb66b0",
         data: totalData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Model Scans",
         backgroundColor: "#42A5F5",
         borderColor: "#42A5F5",
         data: modelData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Unit Scans",
         backgroundColor: "#66BB6A",
         borderColor: "#66BB6A",
         data: unitData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
     ],
   };
@@ -114,30 +113,21 @@ const dailyScanChartSrc = computed(() => {
         backgroundColor: "#bb66b0",
         borderColor: "#bb66b0",
         data: totalData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Model Scans",
         backgroundColor: "#42A5F5",
         borderColor: "#42A5F5",
         data: modelData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Unit Scans",
         backgroundColor: "#66BB6A",
         borderColor: "#66BB6A",
         data: unitData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
     ],
   };
@@ -167,30 +157,21 @@ const scanByCountrySrc = computed(() => {
         backgroundColor: "#bb66b0",
         borderColor: "#bb66b0",
         data: totalData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Model Scans",
         backgroundColor: "#42A5F5",
         borderColor: "#42A5F5",
         data: modelData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Unit Scans",
         backgroundColor: "#66BB6A",
         borderColor: "#66BB6A",
         data: unitData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
     ],
   };
@@ -216,61 +197,31 @@ const scanByCitySrc = computed(() => {
         backgroundColor: "#bb66b0",
         borderColor: "#bb66b0",
         data: totalData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Model Scans",
         backgroundColor: "#42A5F5",
         borderColor: "#42A5F5",
         data: modelData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
       {
         label: "Unit Scans",
         backgroundColor: "#66BB6A",
         borderColor: "#66BB6A",
         data: unitData,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        ...commonDatasetProps,
       },
     ],
   };
 });
-
-const barChartOptions = reactive({
-  responsive: true,
-  plugins: {
-    legend: {
-      position: "bottom",
-      labels: {
-        usePointStyle: true, // Use dots instead of rectangles
-        pointStyle: "circle", // Shape of the dot (default is 'circle')
-      },
-    },
-  },
-});
-
-const lineChartOptions = reactive({
-  responsive: true,
-  plugins: {
-    legend: { display: false },
-  },
-  scales: {
-    y: {
-      ticks: {
-        stepSize: 50,
-      },
-      beginAtZero: true,
-    },
-  },
+const theme = useTheme();
+const barChartOptions = computed(() =>
+  getBarChartOptions(theme.current.value.colors),
+);
+const lineChartOptions = computed(() => {
+  return getLineChartOptions(theme.current.value.colors);
 });
 
 watch(
@@ -308,17 +259,18 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title title="Welcome to Dashboard" border-b>
+        <page-title border-b title="Welcome to Dashboard">
           <v-row align="center">
             <v-select
               v-model="selectedTypeIndex"
               :items="types"
+              class="mb-2"
+              density="compact"
+              hide-details
               items-title="title"
               items-value="value"
-              variant="outlined"
-              hide-details
               rounded
-              density="compact"
+              variant="solo-filled"
             ></v-select>
           </v-row>
         </page-title>
@@ -328,26 +280,26 @@ onMounted(async () => {
     <v-row>
       <v-col>
         <dashboard-card
-          title="TOTAL SCANS"
+          :iconSize="40"
           :value="totalScanCount?.total"
           icon="mdi-cube-outline"
-          :iconSize="40"
+          title="TOTAL SCANS"
         ></dashboard-card>
       </v-col>
       <v-col>
         <dashboard-card
-          title="MODEL SCANS"
+          :iconSize="40"
           :value="totalScanCount?.model"
           icon="mdi-tag"
-          :iconSize="40"
+          title="MODEL SCANS"
         ></dashboard-card>
       </v-col>
       <v-col>
         <dashboard-card
-          title="UNIT SCANS"
+          :iconSize="40"
           :value="totalScanCount?.unit"
           icon="mdi-select-all"
-          :iconSize="40"
+          title="UNIT SCANS"
         ></dashboard-card>
       </v-col>
     </v-row>
@@ -394,12 +346,12 @@ onMounted(async () => {
         <v-sheet class="pa-3" rounded="lg">
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Scan By Country</h3>
+              <h3 class="font-weight-medium">Scan By City</h3>
             </div>
           </div>
           <bar-chart
-            v-if="scanByCountryChart?.datasets?.[0]?.data?.length"
-            :chart-data="scanByCountryChart"
+            v-if="scanByCityChart?.datasets?.[0]?.data?.length"
+            :chart-data="scanByCityChart"
             :chart-options="barChartOptions"
             :height="80"
           />
@@ -413,12 +365,12 @@ onMounted(async () => {
         <v-sheet class="pa-3" rounded="lg">
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Scan By City</h3>
+              <h3 class="font-weight-medium">Scan By Country</h3>
             </div>
           </div>
           <bar-chart
-            v-if="scanByCityChart?.datasets?.[0]?.data?.length"
-            :chart-data="scanByCityChart"
+            v-if="scanByCountryChart?.datasets?.[0]?.data?.length"
+            :chart-data="scanByCountryChart"
             :chart-options="barChartOptions"
             :height="80"
           />

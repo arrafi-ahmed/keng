@@ -57,18 +57,12 @@ const getGreetings = computed(() => {
 </script>
 
 <template>
-  <v-app-bar
-    :order="1"
-    class="px-2 px-md-5"
-    dense
-    flat
-    color="background"
-  >
+  <v-app-bar :height="80" :order="1" class="px-2 px-md-5" color="header" flat>
     <logo
       :img-src="getClientPublicImageUrl('logo.png')"
-      :title="true"
-      :width="80"
-      container-class="clickable"
+      :title="false"
+      :width="190"
+      container-class="clickable mx-3"
       img-class="mx-auto"
       @click="router.push(calcHome)"
     />
@@ -78,6 +72,7 @@ const getGreetings = computed(() => {
         v-if="signedin"
         rounded="pill"
         variant="elevated"
+        size="large"
         @click="drawer = !drawer"
       >
         <template #prepend>
@@ -86,7 +81,7 @@ const getGreetings = computed(() => {
           </v-avatar>
         </template>
         <template #default>
-          <span class="text-body-2 text-capitalize">{{
+          <span class="text-capitalize" style="font-size: 0.8rem">{{
             currentUser.name ? currentUser.name.split(" ")[0] : ""
           }}</span>
         </template>
@@ -102,9 +97,8 @@ const getGreetings = computed(() => {
     :width="220"
     location="end"
     temporary
-    color="primary"
   >
-    <v-list nav density="compact">
+    <v-list density="compact" nav>
       <v-list-item>
         <div class="d-flex justify-start align-center">
           <user-avatar
@@ -135,7 +129,7 @@ const getGreetings = computed(() => {
         <v-btn
           :to="{ name: 'signout' }"
           block
-          color="secondary"
+          color="primary"
           prepend-icon="mdi-exit-to-app"
         >
           Signout

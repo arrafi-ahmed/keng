@@ -1,6 +1,6 @@
 <script setup>
 import NoItems from "@/components/NoItems.vue";
-import { formatDateTime } from "@/others/util.js";
+import { defaultCurrency, formatDateTime } from "@/others/util.js";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
@@ -8,7 +8,6 @@ import Product from "@/models/Product.js";
 import ProductIdentity from "@/models/ProductIdentity.js";
 import { useDisplay } from "vuetify";
 import ConfirmationDialog from "@/components/ConfirmationDialog.vue";
-import { defaultCurrency } from "@/others/util.js";
 
 definePage({
   name: "products",
@@ -240,19 +239,19 @@ onMounted(async () => {
                     <v-menu>
                       <template #activator="{ props }">
                         <v-btn
+                          density="comfortable"
                           icon="mdi-dots-vertical"
+                          size="small"
                           v-bind="props"
                           variant="text"
-                          size="small"
-                          density="comfortable"
                         />
                       </template>
                       <v-list density="compact">
                         <v-list-item
+                          density="compact"
                           link
                           prepend-icon="mdi-shield-check"
                           title="Warranty"
-                          density="compact"
                           @click="
                             router.push({
                               name: 'product-warranty',
@@ -264,10 +263,10 @@ onMounted(async () => {
                           "
                         />
                         <v-list-item
+                          density="compact"
                           link
                           prepend-icon="mdi-qrcode"
                           title="Unit QR Code"
-                          density="compact"
                           @click="
                             router.push({
                               name: 'qrcode-view-unit',
@@ -291,7 +290,8 @@ onMounted(async () => {
             </template>
 
             <template #item.price="{ item }">
-              {{defaultCurrency.symbol}} {{ parseFloat(item.price).toFixed(2) }}
+              {{ defaultCurrency.symbol }}
+              {{ parseFloat(item.price).toFixed(2) }}
             </template>
 
             <template #item.createdAt="{ item }">
@@ -321,10 +321,10 @@ onMounted(async () => {
                     "
                   />
                   <v-list-item
+                    density="compact"
                     link
                     prepend-icon="mdi-qrcode"
                     title="Model QR Code"
-                    density="compact"
                     @click="
                       router.push({
                         name: 'qrcode-view-model',

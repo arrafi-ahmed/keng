@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Your Purchase Confirmation - {{appInfo.name}}</title>
     <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
@@ -187,7 +187,7 @@
             <p>This email confirms your purchase of</p>
             <p>
                 <strong>{{ product.name }}</strong> for
-                <strong>{{currency}}{{ purchased_price }}</strong>.
+                <strong>{{currency}}{{ purchasedPrice }}</strong>.
             </p>
         </div>
 
@@ -195,7 +195,7 @@
         <div class="order-details">
             <ul>
                 <li><strong>Order ID:</strong> {{ purchase.id }}</li>
-                <li><strong>Date:</strong> {{ purchase_date }}</li>
+                <li><strong>Date:</strong> {{ purchaseDate }}</li>
                 <li><strong>Payment Status:</strong> Paid</li>
             </ul>
         </div>
@@ -206,7 +206,7 @@
                 <li><strong>Serial Number:</strong> {{ serial }}</li>
             </ul>
             <div style="text-align:center; margin-top: 15px;">
-                <img src="data:image/png;base64,{{ qrCode }}" alt="QR Code" style="width:200px;" />
+                <img alt="QR Code" src="data:image/png;base64,{{ qrCode }}" style="width:200px;"/>
             </div>
         </div>
 
@@ -217,7 +217,7 @@
         </p>
 
         <div class="btn-container">
-            <a href="{{ links.dashboard }}" class="btn">Go to Your Dashboard</a>
+            <a class="btn" href="{{ links.dashboard }}">Go to Your Dashboard</a>
         </div>
 
         <p>

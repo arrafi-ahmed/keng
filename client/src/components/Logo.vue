@@ -24,10 +24,7 @@ const { imgSrc, title, imgClass, containerClass, maxWidth, width } =
       :width="width"
     />
 
-    <div
-      v-if="title"
-      class="pl-2"
-    >
+    <div v-if="title" class="pl-2">
       <component :is="xs ? 'h3' : 'h2'">
         <span>{{ appInfo.name }}</span>
       </component>

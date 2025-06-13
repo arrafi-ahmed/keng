@@ -2,7 +2,9 @@ const helmet = require("helmet");
 const { excludedSecurityURLs } = require("../helpers/util");
 
 const customHelmet = (req, res, next) => {
-  const isExcluded = excludedSecurityURLs.some((url) => req.originalUrl.includes(url));
+  const isExcluded = excludedSecurityURLs.some((url) =>
+    req.originalUrl.includes(url),
+  );
 
   helmet({ contentSecurityPolicy: false })(req, res, (err) => {
     if (err) {

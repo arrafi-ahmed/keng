@@ -17,11 +17,15 @@ import { createVuetify } from "vuetify";
 const dark = {
   dark: true,
   colors: {
-    background: "#253740",
-    surface: "#1A1F28",
-    // surface: "#10141A",
-    primary: "#49627a",
-    secondary: "#5C9EFF",
+    header: "#2A3A47",
+    background: "#2A3A47",
+    surface: "#3b4d59",
+    primary: "#58a6ff",
+    secondary: "#00bfa5",
+    success: "#4CAF50",
+    error: "#EF5350",
+    "on-background": "#E8EFF5",
+    "on-surface": "#E8EFF5",
   },
 };
 

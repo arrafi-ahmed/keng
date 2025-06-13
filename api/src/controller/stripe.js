@@ -11,7 +11,6 @@ router.post("/createPaymentIntent", auth, async (req, res, next) => {
       res.status(200).json(new ApiResponse(null, result));
     })
     .catch((err) => {
-      console.log(5, err);
       next(err);
     });
 });

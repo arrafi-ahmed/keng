@@ -2,17 +2,14 @@
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import {
-  apiBaseUrl,
   appInfo,
-  downloadFile,
   formatDate,
-  getProductImageUrl,
   getUserLocation,
   handleRemoveQueriesNRedirect,
 } from "@/others/util.js";
-import { useDisplay } from "vuetify";
 import Scan from "@/models/Scan.js";
 import NoItems from "@/components/NoItems.vue";
+import ProductCard from "@/components/ProductCard.vue";
 
 definePage({
   name: "product-identity-single-landing",
@@ -22,7 +19,6 @@ definePage({
     requiresAuth: false,
   },
 });
-const { smAndDown } = useDisplay();
 const store = useStore();
 const route = useRoute();
 
@@ -64,28 +60,6 @@ const fetchData = async () => {
   }
 };
 
-const handleDownloadManual = async () => {
-  const filename = product.value.files?.[0]?.filename;
-  if (!filename) return;
-
-  store.commit("setProgress", true);
-  const apiEndpoint = `${apiBaseUrl}/api/product/downloadManual?filename=${filename}`;
-  await downloadFile(apiEndpoint);
-  store.commit("setProgress", false);
-};
-const imageCarousel = ref(0);
-
-const changeSelectedImage = (index) => {
-  imageCarousel.value = index;
-};
-
-const expanded = ref(false)
-const showToggle = ref(true) // Always show toggle for simplicity
-
-const toggle = () => {
-  expanded.value = !expanded.value
-}
-
 onMounted(async () => {
   await fetchData();
   document.title = `${product.value.name || "Product View"} | ${appInfo.name}`;
@@ -95,106 +69,13 @@ onMounted(async () => {
 
 <template>
   <v-container class="fill-height d-block">
-    <v-row justify="center" align="center">
+    <v-row align="center" justify="center">
       <v-col cols="12" lg="8">
-        <v-sheet
-          v-if="product?.id"
-          class="px-3 mt-4 mt-md-6"
-          rounded
-          :elevation="3"
-        >
-          <v-row align="start" justify="center">
-            <v-col cols="12" sm="10" md="6" order-md="2">
-              <h1>{{ product.name }}</h1>
-              <div :class="{ 'text-truncate-multi-line': !expanded }">
-                {{ product.description }}
-              </div>
-              <v-btn
-                v-if="showToggle"
-                @click="toggle"
-                variant="outlined"
-                size="x-small"
-                class="mt-2"
-              >
-                {{ expanded ? "Read less" : "Read more" }}
-              </v-btn>
-              <v-btn
-                block
-                color="primary"
-                variant="flat"
-                :max-width="500"
-                class="mt-2"
-                @click="handleDownloadManual"
-              >
-                Download Manual
-              </v-btn>
-              <div v-if="product.images?.length" class="mt-2 d-none d-md-block">
-                <div>Product Images</div>
-                <v-slide-group class="py-4" show-arrows>
-                  <v-slide-group-item
-                    v-for="(image, index) in product.images"
-                    :key="index"
-                    v-slot="{ isSelected, toggle }"
-                  >
-                    <v-card
-                      class="rounded ml-2"
-                      :border="isSelected ? 'secondary opacity-100 lg' : ''"
-                      @click="toggle"
-                    >
-                      <v-img
-                        :src="getProductImageUrl(image.filename)"
-                        :height="80"
-                        :width="80"
-                        cover
-                        @click="changeSelectedImage(index)"
-                      />
-                    </v-card>
-                  </v-slide-group-item>
-                </v-slide-group>
-              </div>
-            </v-col>
-            <v-col cols="12" sm="10" md="5" order-md="1">
-              <v-carousel
-                v-model="imageCarousel"
-                hide-delimiters
-                :show-arrows="smAndDown === true"
-                class="mt-2"
-              >
-                <v-carousel-item
-                  v-for="(image, index) in product.images"
-                  :key="index"
-                >
-                  <v-img
-                    :src="getProductImageUrl(image.filename)"
-                    class="rounded"
-                    cover
-                  />
-                </v-carousel-item>
-
-                <template #prev="{ props }">
-                  <v-btn
-                    icon="mdi-chevron-left"
-                    color="grey-darken-2"
-                    class="opacity-50"
-                    size="small"
-                    density="comfortable"
-                    @click="props.onClick"
-                  />
-                </template>
-                <template #next="{ props }">
-                  <v-btn
-                    icon="mdi-chevron-right"
-                    color="grey-darken-2"
-                    class="opacity-50"
-                    size="small"
-                    density="comfortable"
-                    @click="props.onClick"
-                  />
-                </template>
-              </v-carousel>
-            </v-col>
-          </v-row>
-        </v-sheet>
+        <product-card
+          v-if="product.id"
+          :product="product"
+          :showBuy="false"
+        ></product-card>
         <no-items v-else text="No matching product found." />
       </v-col>
     </v-row>

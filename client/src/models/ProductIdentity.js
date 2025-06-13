@@ -6,7 +6,7 @@ export default class ProductIdentity {
     uuid = null,
     isAvailable = true,
     createdAt = null,
-    updatedAt = null
+    updatedAt = null,
   } = {}) {
     this.identityNo = identityNo;
     this.identityType = identityType;

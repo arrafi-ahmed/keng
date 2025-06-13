@@ -56,6 +56,7 @@ const openViewQrDialog = (event, { item }) => {
   viewQrDialog.value = !viewQrDialog.value;
   Object.assign(selectedQrCode, { ...item });
 };
+
 const loadItems = ({ page, itemsPerPage }) => {
   loading.value = true;
   return store
@@ -116,9 +117,9 @@ const handleSubmitAddQrCode = async () => {
           <v-data-table-server
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
-            :loading="loading"
             :items="qrCodes"
             :items-length="totalCount"
+            :loading="loading"
             disable-sort
             @click:row="openViewQrDialog"
             @update:options="loadItems"
@@ -172,18 +173,18 @@ const handleSubmitAddQrCode = async () => {
           <v-btn
             :density="xs ? 'comfortable' : 'default'"
             class="mx-auto mt-2 mt-md-4"
-            color="secondary"
+            color="primary"
             rounded="lg"
             size="large"
-            variant="elevated"
             type="submit"
+            variant="elevated"
           >
             Add
           </v-btn>
           <v-btn
             :density="xs ? 'comfortable' : 'default'"
             class="mx-auto mt-2 mt-md-4"
-            color="primary"
+            color="secondary"
             rounded="lg"
             size="large"
             variant="elevated"
@@ -209,10 +210,10 @@ const handleSubmitAddQrCode = async () => {
               :corners-square-options="qrOptions"
               :dots-options="qrOptions"
               :download="true"
-              :value="selectedQrCode.qrCode"
               :height="250"
-              :width="250"
               :margin="10"
+              :value="selectedQrCode.qrCode"
+              :width="250"
               download-button="v-btn v-btn--block bg-primary v-btn--density-default v-btn--variant-flat mt-2 pa-2"
             />
           </v-col>

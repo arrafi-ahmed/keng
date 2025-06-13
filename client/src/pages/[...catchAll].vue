@@ -21,14 +21,8 @@ const calcHome = computed(() => store.getters["user/calcHome"]);
 
 <template>
   <v-container class="fill-height">
-    <v-row
-      align="center"
-      justify="center"
-    >
-      <v-col
-        :cols="10"
-        class="bg page_404 text-center"
-      >
+    <v-row align="center" justify="center">
+      <v-col :cols="10" class="bg page_404 text-center">
         <h1>{{ status }}</h1>
         <div>{{ message }}</div>
         <v-btn

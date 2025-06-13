@@ -1,6 +1,6 @@
 <script setup>
-import {defineProps} from "vue";
-import {Line} from "vue-chartjs";
+import { defineProps } from "vue";
+import { Line } from "vue-chartjs";
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -27,16 +27,12 @@ ChartJS.register(
 
 // Props to pass data and options
 defineProps({
-  chartData: {type: Object},
-  chartOptions: {type: Object},
-  height: {type: Number},
+  chartData: { type: Object },
+  chartOptions: { type: Object },
+  height: { type: Number },
 });
 </script>
 
 <template>
-  <Line
-    :data="chartData"
-    :height="height"
-    :options="chartOptions"
-  />
+  <Line :data="chartData" :height="height" :options="chartOptions" />
 </template>

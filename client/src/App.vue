@@ -26,10 +26,10 @@ watch(route, (to) => {
       <progress-loader />
       <v-snackbar-queue
         :model-value="snackbars"
-        location="bottom start"
-        closable
-        timer
         :timeout="4000"
+        closable
+        location="bottom start"
+        timer
         @update:model-value="setSnackbars"
       />
       <router-view />

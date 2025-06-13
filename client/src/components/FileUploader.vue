@@ -30,44 +30,38 @@ defineProps({
           :key="index"
           :disabled="toRemove.includes(file)"
           border
+          lines="two"
           rounded
           variant="text"
-          lines="two"
         >
           <v-list-item-title>
             {{ file.filename }}
           </v-list-item-title>
-          <v-list-item-subtitle
-            v-if="toRemove.includes(file)"
-            class="text-red"
-          >
+          <v-list-item-subtitle v-if="toRemove.includes(file)" class="text-red">
             Pending deletion
           </v-list-item-subtitle>
-          <v-list-item-subtitle
-            v-else
-            class="text-green"
-          >
+          <v-list-item-subtitle v-else class="text-success">
             Uploaded
           </v-list-item-subtitle>
           <template #prepend>
             <v-avatar
               v-if="variant === 'image'"
               :image="getApiPublicFileUrl(file.filename, filePrefix)"
-              tile
               rounded
+              tile
             />
             <v-avatar
               v-else-if="variant === 'file'"
               icon="mdi-file-outline"
-              tile
               rounded
+              tile
             />
           </template>
           <template #append>
             <v-btn
-              variant="text"
               density="comfortable"
               icon="mdi-close-circle"
+              variant="text"
               @click="toRemove.push(file)"
             />
           </template>

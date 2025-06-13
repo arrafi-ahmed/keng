@@ -13,17 +13,6 @@ export const getSlug = (slug) =>
     .replace(/\s+/g, "-") // Replace spaces with hyphens
     .replace(/[^a-z0-9-]/g, "");
 
-export const formatDate = (inputDate) => {
-  if (!inputDate) return "";
-  const parsedDate = new Date(inputDate);
-  if (!parsedDate.getTime()) return "";
-
-  const day = `0${parsedDate.getDate()}`.slice(-2);
-  const month = `0${parsedDate.getMonth() + 1}`.slice(-2);
-  const year = parsedDate.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-
 export const getDateOnly = (inputDate) => {
   // YYYY-MM-DD format
   if (!inputDate) return "";
@@ -54,7 +43,20 @@ export const toLocalISOString = (inputDate) => {
   return localISOTime;
 };
 
+export const formatDate = (inputDate) => {
+  if (!inputDate) return "";
+  const parsedDate = new Date(inputDate);
+  if (!parsedDate.getTime()) return "";
+
+  const day = `0${parsedDate.getDate()}`.slice(-2);
+  const month = `0${parsedDate.getMonth() + 1}`.slice(-2);
+  const year = parsedDate.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export const formatDateTime = (inputDateTime) => {
+  if (!inputDateTime) return "";
+
   const formattedDate = formatDate(inputDateTime);
   const date = new Date(inputDateTime);
   const hours = `0${date.getHours()}`.slice(-2);

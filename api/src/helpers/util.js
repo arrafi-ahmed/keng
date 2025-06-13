@@ -189,15 +189,14 @@ const reverseGeocode = async ({ latitude, longitude }) => {
 
 const generateQrCode = async ({ productId, productIdentitiesId, uuid }) => {
   const params = new URLSearchParams();
-  params.append('uuid', uuid);
-  params.append('scanned', 1);
+  params.append("uuid", uuid);
+  params.append("scanned", 1);
 
   const route = `${VUE_BASE_URL}/products/${productId}/${productIdentitiesId}?${params.toString()}`;
 
   const qrCodeDataUrl = await qr.toDataURL(route);
   return qrCodeDataUrl.split(",")[1]; // return only base64 portion
 };
-
 
 // const logoSvgString = fsSync.readFileSync(
 //   path.join(__dirname, "./logo.svg"),

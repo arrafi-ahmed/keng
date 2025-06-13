@@ -8,7 +8,7 @@ const {
   appInfo,
   VUE_BASE_URL,
 } = require("../helpers/util");
-const { sendMail, sendPasswordResetEmail } = require("./emailService");
+const { sendMail, sendPasswordResetEmail } = require("./email");
 
 const generateAuthData = (result) => {
   let token = "";

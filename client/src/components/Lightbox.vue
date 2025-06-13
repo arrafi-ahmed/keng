@@ -61,10 +61,7 @@ const switchFullsize = () => {
     @click="switchDialog"
   />
 
-  <v-dialog
-    v-model="dialog"
-    :max-width="fullSize ? 1000 : targetImageWidth"
-  >
+  <v-dialog v-model="dialog" :max-width="fullSize ? 1000 : targetImageWidth">
     <v-card class="position-relative">
       <v-btn
         :block="false"
@@ -94,10 +91,7 @@ const switchFullsize = () => {
           class="fill-height ma-0"
           justify="space-between"
         >
-          <v-col
-            class="d-flex justify-center"
-            cols="auto"
-          >
+          <v-col class="d-flex justify-center" cols="auto">
             <v-icon
               v-if="currIndex > 0"
               class="cursor-pointer"
@@ -108,10 +102,7 @@ const switchFullsize = () => {
               mdi-chevron-left-circle
             </v-icon>
           </v-col>
-          <v-col
-            class="d-flex justify-center"
-            cols="auto"
-          >
+          <v-col class="d-flex justify-center" cols="auto">
             <v-icon
               v-if="currIndex < imgSet.length - 1"
               class="cursor-pointer"

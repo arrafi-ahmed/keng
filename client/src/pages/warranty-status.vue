@@ -27,11 +27,11 @@ const handleSubmitCheckWarrantyStatus = async () => {
   await store.dispatch("product/setProductIdentity", {
     identityNo: serial.value,
   });
-  if (!productIdentity.value?.id){
+  if (!productIdentity.value?.id) {
     store.commit("addSnackbar", {
       text: "Invalid Serial!",
       color: "error",
-    })
+    });
   }
   router.push({
     name: "product-identity-single-landing",
@@ -56,7 +56,7 @@ const handleSubmitCheckWarrantyStatus = async () => {
     </v-row>
 
     <v-row justify="center">
-      <v-col cols="12" sm="8" md="7" lg="6" xl="5">
+      <v-col cols="12" lg="6" md="7" sm="8" xl="5">
         <v-form
           ref="form"
           v-model="isFormValid"
@@ -74,13 +74,13 @@ const handleSubmitCheckWarrantyStatus = async () => {
           />
           <v-btn
             :density="xs ? 'comfortable' : 'default'"
+            block
             class="mt-2"
-            color="secondary"
+            color="primary"
             rounded="lg"
             size="large"
-            variant="elevated"
             type="submit"
-            block
+            variant="elevated"
           >
             Check
           </v-btn>
