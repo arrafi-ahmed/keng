@@ -1,14 +1,10 @@
-const { VUE_BASE_URL, STRIPE_SECRET } = process.env;
-const stripe = require("stripe")(STRIPE_SECRET);
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const { sql } = require("../db");
 const CustomError = require("../model/CustomError");
 const productService = require("./product");
 const userService = require("./user");
 const {
   defaultCurrency,
-  generateQrCode,
-  generateBase64QrCode,
-  generateQrCodeContent,
 } = require("../helpers/util");
 const { sendPurchaseConfirmation } = require("./email");
 

@@ -2,7 +2,6 @@ require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 process.env.TZ = "UTC";
 
 const express = require("express");
-const helmet = require('helmet');
 const path = require("path");
 const app = express();
 
