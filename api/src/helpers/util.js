@@ -8,7 +8,7 @@ const appInfo = { name: "Quthentic", version: 1.0 };
 
 const excludedSecurityURLs = [
   "/product/getPublicProductNScan",
-  "/product/getWarrantyNScan",
+  "/product/getWarrantyWProductNScan",
 ];
 
 const getCurrencySymbol = ({ code, type }) => {
