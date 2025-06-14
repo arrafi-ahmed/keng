@@ -233,46 +233,43 @@ export const defaultCurrency = getCurrencySymbol({ code: "thb" });
 
 export const getUserLocation = () => {
   return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy, // Accuracy in meters
-            timestamp: position.timestamp, // Timestamp of the reading
-          });
-        },
-        (error) => {
-          // Handle various error codes
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              reject(new Error("User denied the request for Geolocation."));
-              break;
-            case error.POSITION_UNAVAILABLE:
-              reject(new Error("Location information is unavailable."));
-              break;
-            case error.TIMEOUT:
-              reject(new Error("The request to get user location timed out."));
-              break;
-            case error.UNKNOWN_ERROR:
-            default:
-              reject(new Error("An unknown error occurred getting location."));
-              break;
-          }
-        },
-        {
-          // Optional: Geolocation options
-          enableHighAccuracy: true, // Try to get the best possible result
-          timeout: 5000, // Maximum time (ms) to wait for a position
-          maximumAge: 0, // Don't use a cached position
-        },
-      );
-    } else {
-      reject(new Error("Geolocation is not supported by this browser."));
+    if (!navigator.geolocation) {
+      return reject(new Error("Geolocation not supported"));
     }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: position.timestamp,
+        });
+      },
+      (error) => {
+        alert(`Geolocation failed: ${error.message}`);
+        // Optional: resolve with fallback location instead of full rejection
+        const fallback = {
+          latitude: 0,
+          longitude: 0,
+          accuracy: null,
+          timestamp: Date.now(),
+          fallback: true,
+        };
+
+        // You can choose to resolve or reject
+        resolve(fallback); // <- fallback to dummy coords
+        // OR reject(new Error("Location failed"));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0,
+      },
+    );
   });
 };
+
 
 export const downloadFile = async (apiEndpoint) => {
   try {
