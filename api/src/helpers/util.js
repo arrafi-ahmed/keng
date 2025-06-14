@@ -187,14 +187,22 @@ const reverseGeocode = async ({ latitude, longitude }) => {
   }
 };
 
-const generateQrCode = async ({ productId, productIdentitiesId, uuid }) => {
+const generateBase64QrCode = async (payload) => {
+  const { productId, productIdentitiesId, uuid } = payload;
+  if (!productId || !productIdentitiesId || !uuid) {
+    return qr.toDataURL(payload);
+  }
   const params = new URLSearchParams();
   params.append("uuid", uuid);
   params.append("scanned", 1);
 
   const route = `${VUE_BASE_URL}/products/${productId}/${productIdentitiesId}?${params.toString()}`;
 
-  const qrCodeDataUrl = await qr.toDataURL(route);
+  return qr.toDataURL(route); // return with base64 prefix
+};
+
+const generateQrCodeContent = async ({ productId, productIdentitiesId, uuid }) => {
+  const qrCodeDataUrl = await generateBase64QrCode({productId, productIdentitiesId, uuid})
   return qrCodeDataUrl.split(",")[1]; // return only base64 portion
 };
 
@@ -215,7 +223,8 @@ module.exports = {
   getPrefix,
   generateFilename,
   generateImportedFileName,
-  generateQrCode,
+  generateBase64QrCode,
+  generateQrCodeContent,
   getFilePath,
   removeFiles,
   formatDate,

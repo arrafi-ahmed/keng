@@ -18,6 +18,12 @@
             line-height: 1.6;
         }
 
+        p,
+        li {
+            color: #e6edf3 !important;
+        }
+
+
         .email-wrapper {
             background-color: #0d1117;
             padding: 20px;
@@ -180,14 +186,17 @@
 
         <h2>Hi {{ user.name }},</h2>
 
-        <p>Thank you for your recent purchase from {{appInfo.name}}! We're excited for you to get started with
+        <p style="color:#e6edf3!important;">Thank you for your recent purchase from {{appInfo.name}}! We're excited for
+            you to get
+            started
+            with
             your new item.</p>
 
         <div class="product-summary">
-            <p>This email confirms your purchase of</p>
-            <p>
+            <p style="color:#e6edf3!important;">This email confirms your purchase of</p>
+            <p style="color:#e6edf3!important;">
                 <strong>{{ product.name }}</strong> for
-                <strong>{{currency}}{{ purchasedPrice }}</strong>.
+                <strong>{{currency}}{{ purchase.purchasedPrice }}</strong>.
             </p>
         </div>
 
@@ -202,40 +211,31 @@
 
         <h3>Product Serial & QR Code</h3>
         <div class="order-details">
-            <ul>
-                <li><strong>Serial Number:</strong> {{ serial }}</li>
+            <ul style="color:#e6edf3!important;">
+                <li><strong>Serial Number:</strong> {{ productIdentity.identityNo }}</li>
+                <li><strong>QR Code Link:</strong> {{ links.qrCode }}</li>
             </ul>
-            <div style="text-align:center; margin-top: 15px;">
-                <img alt="QR Code" src="data:image/png;base64,{{ qrCode }}" style="width:200px;"/>
-            </div>
+            <img alt="QR Code" src="cid:attachmentQrCode"
+                 style="width:200px; height:auto; display:block; margin: 10px auto; border-radius: 8px; background-color: white; padding: 10px;"/>
         </div>
 
-
-        <p>
-            You can access your product, view your full order history, or manage
-            warranty details directly from your account dashboard.
+        <p style="color:#e6edf3!important;">
+            You can access your product, full order history or warranty details directly from your account dashboard.
         </p>
 
         <div class="btn-container">
             <a class="btn" href="{{ links.dashboard }}">Go to Your Dashboard</a>
         </div>
 
-        <p>
+        <p style="color:#e6edf3!important;">
             We hope you enjoy your purchase! If you have any questions or need
             assistance, please don't hesitate to reach out.
         </p>
 
         <div class="footer">
-            <p>
-                This email was sent by {{appInfo.name}}.
-            </p>
-            <p>
+            <p style="color:#e6edf3!important;">
                 <a href="{{ links.home }}">Visit our Website</a> |
                 <a href="mailto:{{links.support}}">Contact Support</a>
-            </p>
-            <p>
-                If you have any questions, simply reply to this email, and our
-                support team will be happy to help.
             </p>
         </div>
     </div>

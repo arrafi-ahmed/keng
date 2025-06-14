@@ -74,6 +74,18 @@ export const actions = {
     return response;
   },
 
+  async requestResetPass({ commit }, request) {
+    const response = await $axios
+      .post("/api/user/requestResetPass", request)
+    return response;
+  },
+
+  async submitResetPass({ commit }, request) {
+    const response = await $axios
+      .post("/api/user/submitResetPass", request)
+    return response;
+  },
+
   async removeUser({ commit }, request) {
     const response = await $axios.get("/api/user/removeUser", {
       params: { userId: request.id },

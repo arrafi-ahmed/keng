@@ -4,7 +4,12 @@ const { sql } = require("../db");
 const CustomError = require("../model/CustomError");
 const productService = require("./product");
 const userService = require("./user");
-const { defaultCurrency, generateQrCode } = require("../helpers/util");
+const {
+  defaultCurrency,
+  generateQrCode,
+  generateBase64QrCode,
+  generateQrCodeContent,
+} = require("../helpers/util");
 const { sendPurchaseConfirmation } = require("./email");
 
 exports.createPaymentIntent = async ({ payload: { productId, userId } }) => {
@@ -82,7 +87,7 @@ exports.webhook = async (req) => {
 
         // Step 1: Get an available serial
         const [identity] = await sql`
-          SELECT id, identity_no
+          SELECT *
           FROM product_identities
           WHERE product_id = ${productId}
             AND is_available = TRUE
@@ -122,19 +127,14 @@ exports.webhook = async (req) => {
         const product = await productService.getProductOnly({
           payload: { productId },
         });
-
-        const qrCodeBase64 = await generateQrCode({
-          productId: product.id,
-          productIdentitiesId: identity.id,
-          uuid: identity.uuid,
-        });
-        await sendPurchaseConfirmation({
+        sendPurchaseConfirmation({
           to: user.email,
           user,
           product,
+          productIdentity: identity,
           purchase: savedPurchase,
-          serial: identity.identityNo,
-          qrCode: qrCodeBase64,
+        }).catch((err) => {
+          console.error("Failed to send purchase confirmation email:", err);
         });
 
         responseMsg = "Purchase successful!";

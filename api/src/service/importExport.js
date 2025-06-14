@@ -97,7 +97,8 @@ exports.bulkImport = async ({ zipFile, userId }) => {
       SELECT identity_no
       FROM product_identities
       WHERE identity_no = ANY (${identityList})`;
-    const existingIdentityNos = new Set(existingRows.map((r) => r.identity_no));
+
+    const existingIdentityNos = new Set(existingRows.map((r) => r.identityNo));
     const newIdentityNos = identityList.filter(
       (id) => !existingIdentityNos.has(id),
     );

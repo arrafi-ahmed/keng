@@ -12,10 +12,12 @@ const {
   borderB,
   prependAvatar,
   backRoute,
+  titleCol,
 } = defineProps({
   title: { type: String },
   subTitle: { type: String },
   justify: { type: String, default: "space-between" },
+  titleCol: { type: String, default: "9" },
   customClass: { type: String },
   showBack: { type: Boolean, default: false },
   borderB: { type: Boolean, default: false },
@@ -37,7 +39,7 @@ const handleBackClick = () => {
 
 <template>
   <v-row :class="customClass" :justify="justify" align="center" no-gutters>
-    <v-col :cols="9" class="d-flex align-center">
+    <v-col :cols="titleCol" class="d-flex align-center">
       <v-btn
         v-if="calcShowBack"
         class="mr-1"

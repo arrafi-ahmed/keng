@@ -69,12 +69,10 @@ const loadItems = ({ page, itemsPerPage }) => {
 
 const onRowClick = (event, { item }) => {
   router.push({
-    name: "product-identity-single-landing",
+    name: "qrcode-view-unit",
     params: {
       productId: item.productId,
       productIdentitiesId: item.productIdentitiesId,
-    },
-    query: {
       uuid: item.uuid,
     },
   });
@@ -100,7 +98,7 @@ onMounted(async () => {
       <v-col>
         <dashboard-card
           :iconSize="30"
-          :value="`${defaultCurrency.symbol}${stats?.totalPurchase}`"
+          :value="`${defaultCurrency.symbol}${stats?.totalPurchase || 0}`"
           icon="mdi-cash"
           title="TOTAL PURCHASE"
         ></dashboard-card>
@@ -135,6 +133,7 @@ onMounted(async () => {
       <v-col>
         <v-sheet class="pa-4">
           <h3>Recent Purchases</h3>
+          <code class="text-disabled"><small>Click product to download QR Code</small></code>
           <v-data-table-server
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -149,7 +148,7 @@ onMounted(async () => {
               {{ formatDateTime(item.purchaseDate) }}
             </template>
             <template #item.purchasedPrice="{ item }">
-              {{defaultCurrency.symbol}}{{ item.purchasedPrice }}
+              {{ defaultCurrency.symbol }}{{ item.purchasedPrice }}
             </template>
             <template #item.warrantyStatus="{ item }">
               <div v-if="item.warrantyStatus === 0" class="text-error">
@@ -158,9 +157,7 @@ onMounted(async () => {
               <div v-else-if="item.warrantyStatus === 1" class="text-success">
                 Active
               </div>
-              <div v-else>
-                Not Available
-              </div>
+              <div v-else>Not Available</div>
             </template>
           </v-data-table-server>
         </v-sheet>

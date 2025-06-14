@@ -88,10 +88,13 @@ exports.requestResetPass = async ({ payload: { resetEmail } }) => {
     update set ${sql(reset)}
       returning *`;
 
-  await sendPasswordResetEmail({
+  sendPasswordResetEmail({
     to: fetchedUser.email,
     user: fetchedUser,
     token: savedReq.token,
+  }).catch((err) => {
+    // Optional: log but don’t crash
+    console.error("Failed to send password reset email:", err);
   });
 };
 

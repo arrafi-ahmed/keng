@@ -201,7 +201,7 @@ router.get("/getWarrantyWProduct", auth, async (req, res, next) => {
     });
 
     if (!warranty?.id) {
-      res.status(200).json(new ApiResponse(null, { product }));
+      return res.status(200).json(new ApiResponse(null, { product }));
     }
 
     res.status(200).json(new ApiResponse(null, { warranty, product }));

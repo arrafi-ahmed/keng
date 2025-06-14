@@ -124,7 +124,7 @@ const handleSubmitResetPassword = async () => {
                 <!--                  label="Remember me"-->
                 <!--                />-->
                 <span
-                  class="clickable text-blue mt-1 mt-sm-0 text-center"
+                  class="clickable text-secondary mt-1 mt-sm-0 text-center"
                   @click="dialog = !dialog"
                 >
                   Forgot Password?
@@ -143,7 +143,7 @@ const handleSubmitResetPassword = async () => {
               <div class="text-center mt-2 mt-md-4">
                 Not registered yet?
                 <span
-                  class="clickable text-blue"
+                  class="clickable text-secondary"
                   @click="
                     router.push({
                       name: 'register',

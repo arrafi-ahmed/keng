@@ -5,9 +5,11 @@ import { useStore } from "vuex";
 import { computed, ref } from "vue";
 import { getClientPublicImageUrl, getToLink } from "@/others/util";
 import UserAvatar from "@/components/UserAvatar.vue";
+import { useDisplay } from "vuetify";
 
 const store = useStore();
 const router = useRouter();
+const { xs } = useDisplay();
 
 const signedin = computed(() => store.getters["user/signedin"]);
 const currentUser = computed(() => store.getters["user/getCurrentUser"]);
@@ -35,6 +37,9 @@ const menuItemsCustomer = [
     },
   },
 ];
+const isRequiresNoAuth = computed(() =>
+  store.state.routeInfo.to.matched.some((record) => record.meta.requiresNoAuth),
+);
 
 const menuItems = computed(() => {
   let items = [{ title: "Home", to: calcHome.value }];
@@ -62,8 +67,8 @@ const getGreetings = computed(() => {
       :img-src="getClientPublicImageUrl('logo.png')"
       :title="false"
       :width="190"
-      container-class="clickable mx-3"
-      img-class="mx-auto"
+      container-class="clickable"
+      :img-class="isRequiresNoAuth ? 'mx-auto' : 'mx-3'"
       @click="router.push(calcHome)"
     />
 

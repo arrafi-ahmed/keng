@@ -29,4 +29,28 @@ router.post("/signin", (req, res, next) => {
     .catch((err) => next(err));
 });
 
+router.post("/requestResetPass", (req, res, next) => {
+  userService
+    .requestResetPass({ payload: req.body })
+    .then((result) => {
+      res
+        .status(200)
+        .json(
+          new ApiResponse("Password reset link sent to your email!", result),
+        );
+    })
+    .catch((err) => next(err));
+});
+
+router.post("/submitResetPass", (req, res, next) => {
+  userService
+    .submitResetPass({ payload: req.body })
+    .then((result) => {
+      res
+        .status(200)
+        .json(new ApiResponse("Password reset successful!", result));
+    })
+    .catch((err) => next(err));
+});
+
 module.exports = router;

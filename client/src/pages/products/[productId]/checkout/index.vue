@@ -128,7 +128,7 @@ onMounted(async () => {
 
     <v-row align="center" justify="center">
       <v-col cols="12" md="8" sm="10">
-        <v-card v-if="fetchedProduct.id" :max-width="600" class="mx-auto">
+        <v-card v-if="fetchedProduct.id" :max-width="600" class="mx-auto" tile>
           <v-card-title>{{ fetchedProduct.name }}</v-card-title>
           <v-card-subtitle>{{ fetchedProduct.description }}</v-card-subtitle>
           <v-card-text>
@@ -159,6 +159,7 @@ onMounted(async () => {
         class="text-center"
       >
         <v-img
+          v-if="isCardMounted"
           :src="getClientPublicImageUrl('stripe.svg')"
           alt="Powered by Stripe"
           contain

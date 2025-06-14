@@ -376,7 +376,7 @@ onMounted(async () => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="productDialog" :width="500" persistent>
+  <v-dialog v-model="productDialog" :max-width="600" persistent>
     <v-card>
       <v-card-title class="d-flex justify-space-between">
         <h2>Add Product</h2>

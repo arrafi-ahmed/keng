@@ -140,9 +140,11 @@ const handleExport = async () => {
         <ul class="mx-3">
           <li>Ensure all filenames are unique to avoid conflicts.</li>
           <li>
-            <div>Organize your ZIP file with the following folder structure:</div>
+            <div>
+              Organize your ZIP file with the following folder structure:
+            </div>
             <code>{{
-                `import.zip
+              `import.zip
 ├── product-images/
 │    ├── image1.jpg
 │    ├── image2.png
@@ -156,18 +158,41 @@ const handleExport = async () => {
 │    ├── manual2.pdf
 │    └── ...
 └── products.xlsx`
-              }}</code>
+            }}</code>
           </li>
           <li>
-            <div>In <code>products.xlsx</code>, include the following columns:</div>
-            <code>name	description	price	identities	images	manuals	certificates
+            <div>
+              In <code>products.xlsx</code>, include the following columns:
+            </div>
+            <code
+              >name description price identities images manuals certificates
             </code>
-            <v-img class="mt-1" :src="getClientPublicImageUrl('sample-excel.png')"></v-img>
+            <v-img
+              class="mt-1"
+              :src="getClientPublicImageUrl('sample-excel.png')"
+            ></v-img>
+            <div class="d-flex justify-center">
+              <v-btn
+                :href="getClientPublicImageUrl('sample-excel.png')"
+                target="_blank"
+                icon
+                class="mx-auto"
+                variant="plain"
+                :ripple="false"
+                size="x-small"
+              >
+                (+) View full size
+              </v-btn>
+            </div>
           </li>
         </ul>
       </v-card-text>
       <v-card-actions>
-        <v-btn variant="flat" color="secondary" @click="instructionDialog = !instructionDialog">
+        <v-btn
+          variant="flat"
+          color="secondary"
+          @click="instructionDialog = !instructionDialog"
+        >
           Close
         </v-btn>
       </v-card-actions>

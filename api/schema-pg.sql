@@ -111,3 +111,12 @@ CREATE TABLE purchases
     created_at            TIMESTAMP DEFAULT NOW(),
     updated_at            TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE password_reset
+(
+    id         SERIAL PRIMARY KEY,
+    email      VARCHAR(255) NOT NULL,
+    token      VARCHAR(255) NOT NULL,
+    user_id    INT REFERENCES users (id) ON DELETE CASCADE,
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
