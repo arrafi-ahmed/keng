@@ -35,11 +35,17 @@ const fetchData = async () => {
     });
 
     //get scan data
-    const { latitude, longitude, timestamp } = await getUserLocation();
+    let location;
+    try {
+      location = await getUserLocation();
+    } catch (err) {
+      console.warn("Geolocation error, proceeding without location:", err);
+      location = null; // fallback gracefully
+    }
 
     const newScan = new Scan({
-      scannedAt: timestamp,
-      location: { latitude, longitude },
+      scannedAt: location?.timestamp,
+      location,
       productId: productId.value,
     });
 

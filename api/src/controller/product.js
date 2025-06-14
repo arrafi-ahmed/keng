@@ -111,19 +111,26 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      const geocodedDetails = await reverseGeocode({
-        latitude: payload.newScan.location.latitude,
-        longitude: payload.newScan.location.longitude,
-      });
+      const loc = payload.newScan.location;
+      let geocodedDetails = {};
+
+      if (loc?.latitude && loc?.longitude) {
+        geocodedDetails = await reverseGeocode({
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+        });
+      }
+
       payload.newScan = {
         ...payload.newScan,
-        ipAddress : getClientIP(req),
-        scanType : 'model',
-        location : {
-          ...payload.newScan.location,
+        ipAddress: getClientIP(req),
+        scanType: "model",
+        location: {
+          ...(loc || {}),
           ...geocodedDetails,
-        }
-      }
+        },
+      };
+
       const savedScan = await productService.saveScan({
         payload: { newScan: payload.newScan },
       });
@@ -160,23 +167,26 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      const geocodedDetails = await reverseGeocode({
-        latitude: payload.newScan.location.latitude,
-        longitude: payload.newScan.location.longitude,
-      });
-      payload.newScan.location = {
-        ...payload.newScan.location,
-        ...geocodedDetails,
-      };
+      const loc = payload.newScan.location;
+      let geocodedDetails = {};
+
+      if (loc?.latitude && loc?.longitude) {
+        geocodedDetails = await reverseGeocode({
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+        });
+      }
+
       payload.newScan = {
         ...payload.newScan,
-        ipAddress : getClientIP(req),
-        scanType : 'unit',
-        location : {
-          ...payload.newScan.location,
+        ipAddress: getClientIP(req),
+        scanType: "model",
+        location: {
+          ...(loc || {}),
           ...geocodedDetails,
-        }
-      }
+        },
+      };
+
       const savedScan = await productService.saveScan({
         payload: { newScan: payload.newScan },
       });
