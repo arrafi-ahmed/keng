@@ -51,7 +51,7 @@ onMounted(() => {
         <v-card
           class="mx-auto pa-4 pa-md-8 my-2 my-md-5"
           elevation="0"
-          max-width="700"
+          max-width="600"
           rounded="lg"
         >
           <v-card-title class="text-center font-weight-bold">
@@ -153,7 +153,7 @@ onMounted(() => {
 
               <div class="mt-2 mt-md-4 text-center">
                 <span
-                  class="clickable text-blue"
+                  class="clickable text-secondary"
                   @click="router.push({ name: 'signin' })"
                 >
                   Already registered?
