@@ -133,33 +133,30 @@ const getClientIP = (req) => {
 };
 
 const reverseGeocode = async ({ latitude, longitude }) => {
-  if (!LOCATIONIQ_API_KEY) {
-    throw new Error(
-      "LocationIQ API key is not configured in environment variables.",
-    );
-  }
+  if (!LOCATIONIQ_API_KEY) return {};
 
-  // LocationIQ's reverse geocoding endpoint
   const url = `https://us1.locationiq.com/v1/reverse.php?key=${LOCATIONIQ_API_KEY}&lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`;
-  const options = {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      "User-Agent": `${appInfo.name}/${appInfo.version} (doe@dev.com)`,
-    },
-  };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000); // 4 second timeout
 
   try {
-    const response = await fetch(url, options);
-    const data = await response.json(); // Parse the JSON response
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "User-Agent": `${appInfo.name}/${appInfo.version} (dev@quthentic.com)`,
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
 
+    const data = await response.json();
     if (!response.ok) {
-      console.error("LocationIQ API error response:", data);
-      throw new Error(
-        data.error ||
-          `Failed to retrieve location details: HTTP Status ${response.status}`,
-      );
+      console.warn("LocationIQ error:", data);
+      return {}; // Fail silently
     }
+
     const address = data.address || {};
     return {
       latitude: data.lat,
@@ -171,7 +168,7 @@ const reverseGeocode = async ({ latitude, longitude }) => {
       neighbourhood: address.neighbourhood || "",
       suburb: address.suburb || "",
       city:
-        address.city || address.town || address.village || address.hamlet || "", // Fallbacks for different settlement types
+        address.city || address.town || address.village || address.hamlet || "",
       county: address.county || "",
       state: address.state || "",
       postcode: address.postcode || "",
@@ -179,13 +176,11 @@ const reverseGeocode = async ({ latitude, longitude }) => {
       countryCode: address.country_code || "",
     };
   } catch (error) {
-    console.error(
-      "Error fetching location details from LocationIQ:",
-      error.message,
-    );
-    throw new Error(`Failed to get location name: ${error.message}`);
+    console.warn("LocationIQ failed (timeout or network):", error.message);
+    return {}; // Don't break the request
   }
 };
+
 
 const generateBase64QrCode = async (payload) => {
   const { productId, productIdentitiesId, uuid } = payload;
