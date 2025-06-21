@@ -40,10 +40,13 @@ fi
 
 # === 2. Upload deploy files ===
 echo "📦 Uploading deploy script and env files..."
-scp \
-  deploy-remote.sh \
-  frontend/.env.production "$SERVER:$REMOTE_DIR/.env.frontend.production" \
-  backend/.env.production "$SERVER:$REMOTE_DIR/.env.backend.production"
+
+# Use separate scp commands for each file if renaming,
+# or copy them all to the directory if keeping original names.
+# I'm assuming you want to rename them as you had in your original scp.
+scp deploy-remote.sh "$SERVER:$REMOTE_DIR/deploy-remote.sh"
+scp frontend/.env.production "$SERVER:$REMOTE_DIR/.env.frontend.production"
+scp backend/.env.production "$SERVER:$REMOTE_DIR/.env.backend.production"
 
 # === 3. Trigger deploy ===
 echo "🚀 Running remote deploy script..."
