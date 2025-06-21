@@ -2,7 +2,8 @@
 
 ### === CONFIGURATION === ###
 HOME="~"
-ENV_BACKEND="$HOME/.env.backend.production"
+ROOT_DIR="/root"
+ENV_BACKEND="$ROOT_DIR/.env.backend.production"
 
 if [ ! -f "$ENV_BACKEND" ]; then
   echo "❌ Missing backend env file: $ENV_BACKEND"
@@ -46,8 +47,8 @@ git clone "$REPO_URL" "$CLONE_DIR"
 
 # === 1.1 Move env files to correct locations ===
 echo "📁 Placing .env files into backend and frontend..."
-cp "$HOME/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
-cp "$HOME/.env.backend.production" "$CLONE_DIR/backend/.env.production"
+cp "$ROOT_DIR/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
+cp "$ROOT_DIR/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
@@ -134,7 +135,7 @@ fi
 # === 10. Cleanup ===
 echo "🧹 Cleaning up..."
 rm -rf "$CLONE_DIR"
-rm -f "$HOME/deploy-remote.sh"
-rm -f "$HOME/.env.frontend.production"
-rm -f "$HOME/.env.backend.production"
+rm -f "$ROOT_DIR/deploy-remote.sh"
+rm -f "$ROOT_DIR/.env.frontend.production"
+rm -f "$ROOT_DIR/.env.backend.production"
 echo -e "\n✅ Deployment complete! Visit: https://$DOMAIN"
