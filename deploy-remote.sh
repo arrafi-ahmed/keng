@@ -21,6 +21,7 @@ fi
 SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
+HOME_DIR="~"
 ### ====================== ###
 
 set -e
@@ -43,8 +44,8 @@ git clone "$REPO_URL" "$CLONE_DIR"
 
 # === 1.1 Move env files to correct locations ===
 echo "📁 Placing .env files into backend and frontend..."
-cp "/home/$SITE_USER/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
-cp "/home/$SITE_USER/.env.backend.production" "$CLONE_DIR/backend/.env.production"
+cp "$HOME_DIR/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
+cp "$HOME_DIR/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
@@ -112,3 +113,26 @@ cat <<EOF > "$NGINX_CUSTOM_CONF"
 location /api/ {
     proxy_pass http://127.0.0.1:$PORT/;
     proxy_http_version 1.1;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host \$host;
+    proxy_cache_bypass \$http_upgrade;
+}
+EOF
+
+nginx -t && systemctl reload nginx
+
+# === 9. Setup PostgreSQL schema if exists ===
+SCHEMA_SQL="$CLONE_DIR/backend/schema-pg.sql"
+if [ -f "$SCHEMA_SQL" ]; then
+  echo "📄 Running schema-pg.sql..."
+  sudo -u postgres psql -d "$DB_NAME" -f "$SCHEMA_SQL"
+fi
+
+# === 10. Cleanup ===
+echo "🧹 Cleaning up..."
+rm -rf "$CLONE_DIR"
+rm -f "$HOME_DIR/deploy-remote.sh"
+rm -f "$HOME_DIR/.env.frontend.production"
+rm -f "$HOME_DIR/.env.backend.production"
+echo -e "\n✅ Deployment complete! Visit: https://$DOMAIN"
