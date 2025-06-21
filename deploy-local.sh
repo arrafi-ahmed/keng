@@ -26,7 +26,7 @@ export $(grep -v '^#' "$ENV_FILE" | xargs)
 : "${SERVER_IP:?Missing SERVER_IP}"
 
 SERVER="root@$SERVER_IP"
-REMOTE_DIR="~"  # This ensures upload goes to the actual SSH user's home
+REMOTE_DIR="/root"  # This ensures upload goes to the actual SSH user's home
 
 # === 1. Git Push (optional) ===
 if [ "$SKIP_GIT" = false ]; then
