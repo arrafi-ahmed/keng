@@ -1,22 +1,50 @@
 #!/bin/bash
 
 ### === CONFIGURATION === ###
-PROJECT_NAME="keng"
-DOMAIN="quthentic.com"
-PORT=3000  # Port your Node backend listens on
-SITE_DIR="/home/cloudpanel/htdocs/$DOMAIN"
+ENV_FILE=".env.production"
+
+# Load environment variables from backend env if it exists (used for deploy vars)
+if [ -f "./backend/.env.production" ]; then
+  echo "🔑 Loading backend/.env.production variables..."
+  export $(grep -v '^#' ./backend/.env.production | xargs)
+fi
+
+# Require variables to be set
+: "${PROJECT_NAME:?Missing PROJECT_NAME in env}"
+: "${DOMAIN:?Missing DOMAIN in env}"
+: "${PORT:?Missing PORT in env}"
+: "${DB_NAME:?Missing DB_NAME in env}"
+: "${DB_USER:?Missing DB_USER in env}"
+: "${DB_PASS:?Missing DB_PASS in env}"
+: "${SITE_USER:?Missing SITE_USER in env}"
+
+SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
 ### ====================== ###
 
 set -e
 
-echo "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
+echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
+
+# === 0. Install PostgreSQL (first-time only) ===
+echo "🛠 Installing PostgreSQL (if not installed)..."
+if ! command -v psql &> /dev/null; then
+  apt update
+  apt install -y postgresql postgresql-contrib
+  systemctl enable postgresql
+  systemctl start postgresql
+fi
 
 # === 1. Clone fresh repo ===
 echo "🔄 Cloning repo..."
 rm -rf "$CLONE_DIR"
 git clone "$REPO_URL" "$CLONE_DIR"
+
+# === 1.1 Move env files to correct locations ===
+echo "📁 Placing .env files into backend and frontend..."
+cp "/home/$SITE_USER/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
+cp "/home/$SITE_USER/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
@@ -84,16 +112,3 @@ cat <<EOF > "$NGINX_CUSTOM_CONF"
 location /api/ {
     proxy_pass http://127.0.0.1:$PORT/;
     proxy_http_version 1.1;
-    proxy_set_header Upgrade \$http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host \$host;
-    proxy_cache_bypass \$http_upgrade;
-}
-EOF
-
-nginx -t && systemctl reload nginx
-
-# === 9. Cleanup ===
-echo "🧹 Cleaning up..."
-rm -rf "$CLONE_DIR"
-echo "\n✅ Deployment complete! Visit: https://$DOMAIN"
