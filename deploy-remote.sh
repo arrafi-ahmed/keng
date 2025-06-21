@@ -1,13 +1,16 @@
 #!/bin/bash
 
 ### === CONFIGURATION === ###
-ENV_FILE=".env.production"
+HOME="~"
+ENV_BACKEND="$HOME/.env.backend.production"
 
-# Load environment variables from backend env if it exists (used for deploy vars)
-if [ -f "./backend/.env.production" ]; then
-  echo "🔑 Loading backend/.env.production variables..."
-  export $(grep -v '^#' ./backend/.env.production | xargs)
+if [ ! -f "$ENV_BACKEND" ]; then
+  echo "❌ Missing backend env file: $ENV_BACKEND"
+  exit 1
 fi
+
+echo "🔑 Loading env vars from $ENV_BACKEND..."
+export $(grep -v '^#' "$ENV_BACKEND" | xargs)
 
 # Require variables to be set
 : "${PROJECT_NAME:?Missing PROJECT_NAME in env}"
@@ -18,10 +21,9 @@ fi
 : "${DB_PASS:?Missing DB_PASS in env}"
 : "${SITE_USER:?Missing SITE_USER in env}"
 
-SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
+SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
-HOME_DIR="~"
 ### ====================== ###
 
 set -e
@@ -44,8 +46,8 @@ git clone "$REPO_URL" "$CLONE_DIR"
 
 # === 1.1 Move env files to correct locations ===
 echo "📁 Placing .env files into backend and frontend..."
-cp "$HOME_DIR/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
-cp "$HOME_DIR/.env.backend.production" "$CLONE_DIR/backend/.env.production"
+cp "$HOME/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
+cp "$HOME/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
@@ -132,7 +134,7 @@ fi
 # === 10. Cleanup ===
 echo "🧹 Cleaning up..."
 rm -rf "$CLONE_DIR"
-rm -f "$HOME_DIR/deploy-remote.sh"
-rm -f "$HOME_DIR/.env.frontend.production"
-rm -f "$HOME_DIR/.env.backend.production"
+rm -f "$HOME/deploy-remote.sh"
+rm -f "$HOME/.env.frontend.production"
+rm -f "$HOME/.env.backend.production"
 echo -e "\n✅ Deployment complete! Visit: https://$DOMAIN"
