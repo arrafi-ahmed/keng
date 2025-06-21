@@ -1,17 +1,27 @@
 #!/bin/bash
 
-### === CONFIGURATION === ###
-HOME="~"
-ROOT_DIR="/root"
-ENV_BACKEND="$ROOT_DIR/.env.backend.production"
+# Enable detailed logging for debugging
+set -x
 
-if [ ! -f "$ENV_BACKEND" ]; then
-  echo "❌ Missing backend env file: $ENV_BACKEND"
+### === CONFIGURATION === ###
+REMOTE_FRONTEND_ENV="/root/.env.frontend.production"
+REMOTE_BACKEND_ENV="/root/.env.backend.production"
+
+echo "DEBUG: Current directory (before checks): $(pwd)"
+echo "DEBUG: Checking for backend env at: $REMOTE_BACKEND_ENV"
+
+# Check if the backend env file exists before proceeding
+if [ ! -f "$REMOTE_BACKEND_ENV" ]; then
+  echo "❌ Missing backend env file: $REMOTE_BACKEND_ENV"
+  # Add more debug for what's actually in /root
+  echo "DEBUG: Contents of /root/:"
+  ls -la /root/
   exit 1
 fi
 
-echo "🔑 Loading env vars from $ENV_BACKEND..."
-export $(grep -v '^#' "$ENV_BACKEND" | xargs)
+# Load backend environment variables
+echo "🔑 Loading $REMOTE_BACKEND_ENV variables..."
+export $(grep -v '^#' "$REMOTE_BACKEND_ENV" | xargs)
 
 # Require variables to be set
 : "${PROJECT_NAME:?Missing PROJECT_NAME in env}"
