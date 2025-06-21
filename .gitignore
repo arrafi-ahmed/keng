@@ -1,17 +1,17 @@
 .DS_Store
 node_modules
-client/dist
+frontend/dist
 
-api/public/product-certificates/*
-api/public/product-images/*
-api/public/product-manuals/*
-api/public/user-images/*
+backend/public/product-certificates/*
+backend/public/product-images/*
+backend/public/product-manuals/*
+backend/public/user-images/*
 
 # allow all the folders themselves to be tracked
-!api/public/product-certificates/.gitkeep
-!api/public/product-images/.gitkeep
-!api/public/product-manuals/.gitkeep
-!api/public/user-images/.gitkeep
+!backend/public/product-certificates/.gitkeep
+!backend/public/product-images/.gitkeep
+!backend/public/product-manuals/.gitkeep
+!backend/public/user-images/.gitkeep
 
 # env files
 .env
@@ -19,7 +19,7 @@ api/public/user-images/*
 **/.env.production
 
 # skip ignoring production env as its used in build on prod server
-!client/.env.production
+!frontend/.env.production
 
 # Log files
 npm-debug.log*

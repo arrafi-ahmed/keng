@@ -1,89 +1,99 @@
 #!/bin/bash
 
-echo "----- Deployment script started ---"
-# Define variables for directories and repositories
-REPO_NAME="keng"
-VHOST_NAME="Example"
+### === CONFIGURATION === ###
+PROJECT_NAME="keng"
+DOMAIN="quthentic.com"
+PORT=3000  # Port your Node backend listens on
+SITE_DIR="/home/cloudpanel/htdocs/$DOMAIN"
+REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
+CLONE_DIR="$SITE_DIR/tmp-deploy"
+### ====================== ###
 
-# Auto generated
-PROJECT_ROOT="/usr/local/lsws/$VHOST_NAME"
-REPO_URL="https://github.com/arrafi-ahmed/$REPO_NAME.git"
-REPO_DIR="$PROJECT_ROOT/$REPO_NAME"
-HTML_DIR="$PROJECT_ROOT/html"
-
-# Exit immediately if a command exits with a non-zero status
 set -e
 
-# Function to remove existing files and directories in /usr/local/lsws/wayzaway/html
-remove_existing_files() {
-  local files=(
-    assets
-    favicon.ico
-    img
-    index.html
-    maintanance.html
-    site.webmanifest
-  )
-  for file in "${files[@]}"; do
-    if [ -e "$HTML_DIR/$file" ]; then
-      if [ -d "$HTML_DIR/$file" ]; then
-        rm -rf "$HTML_DIR/$file" && \
-        echo "----- Directory $HTML_DIR/$file removed..."
-      else
-        rm -f "$HTML_DIR/$file" && \
-        echo "----- File $HTML_DIR/$file removed..."
-      fi
-    fi
-  done
+echo "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
+
+# === 1. Clone fresh repo ===
+echo "🔄 Cloning repo..."
+rm -rf "$CLONE_DIR"
+git clone "$REPO_URL" "$CLONE_DIR"
+
+# === 2. Build frontend ===
+echo "🛠 Building frontend..."
+cd "$CLONE_DIR/frontend"
+npm install --legacy-peer-deps
+npm run build
+
+rm -rf "$SITE_DIR/htdocs"
+mkdir -p "$SITE_DIR/htdocs"
+cp -r dist/* "$SITE_DIR/htdocs/"
+echo "✅ Frontend deployed to $SITE_DIR/htdocs"
+
+# === 3. Preserve /public/ folder if it exists ===
+if [ -d "$SITE_DIR/backend/public" ] && [ "$(ls -A $SITE_DIR/backend/public 2>/dev/null)" ]; then
+  echo "📦 Backing up existing public folder..."
+  mv "$SITE_DIR/backend/public" "$SITE_DIR/public_backup"
+fi
+
+# === 4. Deploy backend ===
+echo "📁 Syncing backend..."
+rm -rf "$SITE_DIR/backend"
+mkdir -p "$SITE_DIR/backend"
+cp -r "$CLONE_DIR/backend/"* "$SITE_DIR/backend/"
+
+# === 5. Restore /public/ if it was backed up ===
+if [ -d "$SITE_DIR/public_backup" ]; then
+  echo "♻️ Restoring public folder..."
+  rm -rf "$SITE_DIR/backend/public"
+  mv "$SITE_DIR/public_backup" "$SITE_DIR/backend/public"
+fi
+
+# === 6. Setup Node app ===
+cd "$SITE_DIR/backend"
+echo "📦 Installing backend dependencies..."
+npm install --legacy-peer-deps
+
+# === 7. Setup PM2 ecosystem config ===
+echo "⚙️ Setting up PM2..."
+cat <<EOF > ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: "$PROJECT_NAME-api",
+    script: "app.js",
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    env: {
+      NODE_ENV: "production",
+      PORT: "$PORT"
+    }
+  }]
+};
+EOF
+
+pm2 start ecosystem.config.js || pm2 restart "$PROJECT_NAME-api"
+pm2 save
+pm2 startup
+
+# === 8. Setup Nginx reverse proxy ===
+NGINX_CUSTOM_CONF="$SITE_DIR/nginx/custom.main.conf"
+echo "🌐 Configuring Nginx reverse proxy..."
+mkdir -p "$(dirname $NGINX_CUSTOM_CONF)"
+
+cat <<EOF > "$NGINX_CUSTOM_CONF"
+location /api/ {
+    proxy_pass http://127.0.0.1:$PORT/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host \$host;
+    proxy_cache_bypass \$http_upgrade;
 }
+EOF
 
-# Check if the project directory exists, and if it does, remove it
-if [ -d "$REPO_DIR" ]; then
-  echo "----- Directory $REPO_DIR already exists..."
-  rm -rf "$REPO_DIR" && \
-  echo "----- Directory $REPO_DIR removed..."
-fi
+nginx -t && systemctl reload nginx
 
-# Change directory to the project directory and clone the repository
-cd "$PROJECT_ROOT" && \
-git clone "$REPO_URL" && \
-echo "----- Git clone done..."
-
-# Navigate to the client directory, setup the client environment, and build the client application
-cd "$REPO_DIR/client" && \
-npm run in && \
-npm run build && \
-remove_existing_files && \
-mv dist/* "$HTML_DIR" && \
-echo "----- Client build done..."
-
-# Navigate to the Node directory and clean up (remove all files except 'public')
-cd "$HTML_DIR/node" && \
-find . -mindepth 1 -maxdepth 1 ! -name 'public' -exec rm -rf {} + && \
-echo "----- Project Node dir cleaned..."
-
-# Sync API files to the node directory (excluding 'public' folder)
-if [ -d "$HTML_DIR/node/public" ]; then
-  rsync -av --progress --exclude public "$REPO_DIR/api/" "$HTML_DIR/node" && \
-  echo "----- Project Node synced (with exclusion)..."
-else
-  rsync -av --progress "$REPO_DIR/api/" "$HTML_DIR/node" && \
-  echo "----- Project Node synced (no exclusion)..."
-fi
-
-# Navigate to the node directory and setup the node environment
-cd "$HTML_DIR/node" && \
-npm run in && \
-echo "----- Api setup done..." && \
-
-if [ -d "$REPO_DIR" ]; then
-  rm -rf "$REPO_DIR" && \
-  echo "----- Junk directory $REPO_DIR removed..."
-fi
-
-#After deployment change file permission of public folder:
-find "$HTML_DIR/node/public" -type f -exec chmod 777 {} \; && \
-find "$HTML_DIR/node/public" -type d -exec chmod 777 {} \; && \
-echo "----- Public dir & files permission modified..."
-
-echo "----- Deployment script ended ---"
+# === 9. Cleanup ===
+echo "🧹 Cleaning up..."
+rm -rf "$CLONE_DIR"
+echo "\n✅ Deployment complete! Visit: https://$DOMAIN"

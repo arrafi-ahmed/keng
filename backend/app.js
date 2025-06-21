@@ -1,4 +1,9 @@
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+require("dotenv").config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? ".env.production"
+      : ".env.development",
+});
 process.env.TZ = "UTC";
 
 const express = require("express");
@@ -7,7 +12,10 @@ const app = express();
 
 const customHelmet = require("./src/middleware/customHelmet");
 const customCors = require("./src/middleware/customCors");
-const { globalErrHandler, uncaughtErrHandler } = require("./src/middleware/errHandler");
+const {
+  globalErrHandler,
+  uncaughtErrHandler,
+} = require("./src/middleware/errHandler");
 const { appInfo } = require("./src/helpers/util");
 
 const port = process.env.PORT || 3000;
@@ -26,11 +34,11 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 // Routes
-app.use("/api/user", require("./src/controller/user"));
-app.use("/api/product", require("./src/controller/product"));
-app.use("/api/scanAnalytics", require("./src/controller/scanAnalytics"));
-app.use("/api/customerInsights", require("./src/controller/customerInsights"));
-app.use("/api/stripe", require("./src/controller/stripe").router);
+app.use("/backend/user", require("./src/controller/user"));
+app.use("/backend/product", require("./src/controller/product"));
+app.use("/backend/scanAnalytics", require("./src/controller/scanAnalytics"));
+app.use("/backend/customerInsights", require("./src/controller/customerInsights"));
+app.use("/backend/stripe", require("./src/controller/stripe").router);
 
 app.get("/api/info", (req, res) => {
   res.status(200).json(appInfo);
