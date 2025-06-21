@@ -41,6 +41,34 @@ set -e
 
 echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
 
+# === 0.0 Install Node.js and npm ===
+echo "🛠 Installing Node.js and npm (if not installed)..."
+if ! command -v node &> /dev/null; then
+  echo "Node.js not found. Installing..."
+  # Remove any old NodeSource setup if present to avoid conflicts
+  rm -f /etc/apt/sources.list.d/nodesource.list
+  rm -f /etc/apt/sources.list.d/nodesource.list.save
+
+  # Add NodeSource APT repository (e.g., Node.js 20.x, adjust version as needed)
+  # You can change nodesource_setup.sh to 18, 20, 22 based on your app's needs
+  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  apt update
+  apt install -y nodejs
+
+  echo "Node.js and npm installed successfully."
+else
+  echo "Node.js is already installed."
+fi
+
+# === 0.0.1 Install PM2 globally (if not installed) ===
+echo "🛠 Installing PM2 globally (if not installed)..."
+if ! command -v pm2 &> /dev/null; then
+  npm install pm2@latest -g
+  echo "PM2 installed globally."
+else
+  echo "PM2 is already installed."
+fi
+
 # === 0. Install PostgreSQL (first-time only) ===
 echo "🛠 Installing PostgreSQL (if not installed)..."
 if ! command -v psql &> /dev/null; then
