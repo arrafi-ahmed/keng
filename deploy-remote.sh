@@ -57,8 +57,8 @@ git clone "$REPO_URL" "$CLONE_DIR"
 
 # === 1.1 Move env files to correct locations ===
 echo "📁 Placing .env files into backend and frontend..."
-cp "$ROOT_DIR/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
-cp "$ROOT_DIR/.env.backend.production" "$CLONE_DIR/backend/.env.production"
+cp "/root/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
+cp "/root/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
@@ -145,7 +145,7 @@ fi
 # === 10. Cleanup ===
 echo "🧹 Cleaning up..."
 rm -rf "$CLONE_DIR"
-rm -f "$ROOT_DIR/deploy-remote.sh"
-rm -f "$ROOT_DIR/.env.frontend.production"
-rm -f "$ROOT_DIR/.env.backend.production"
+rm -f "/root/deploy-remote.sh"
+rm -f "/root/.env.frontend.production"
+rm -f "/root/.env.backend.production"
 echo -e "\n✅ Deployment complete! Visit: https://$DOMAIN"
