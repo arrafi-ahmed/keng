@@ -111,7 +111,6 @@ sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL ON SCHEMA public TO $DB_USER;"
 
 echo "✅ PostgreSQL database and user configured."
 
-
 # === 1. Clone fresh repo ===
 echo "🔄 Cloning repo..."
 rm -rf "$CLONE_DIR"
@@ -208,23 +207,80 @@ pm2 start ecosystem.config.js || pm2 restart "$PROJECT_NAME-api"
 pm2 save
 pm2 startup
 
-# === 8. Setup Nginx reverse proxy ===
-NGINX_CUSTOM_CONF="$SITE_DIR/nginx/custom.main.conf"
-echo "🌐 Configuring Nginx reverse proxy..."
-mkdir -p "$(dirname $NGINX_CUSTOM_CONF)"
+# === 8. Setup Nginx for full site serving (Frontend + Backend Proxy) ===
+NGINX_SITE_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
+NGINX_SYMLINK="/etc/nginx/sites-enabled/$DOMAIN.conf"
 
-cat <<EOF > "$NGINX_CUSTOM_CONF"
-location /api/ {
-    proxy_pass http://127.0.0.1:$PORT/;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade \$http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host \$host;
-    proxy_cache_bypass \$http_upgrade;
+echo "🌐 Configuring Nginx for full site serving on $DOMAIN..."
+
+cat <<EOF > "$NGINX_SITE_CONF"
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN www.$DOMAIN;
+
+    return 301 https://\$host\$request_uri;
+}
+
+# Main HTTPS server block
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name $DOMAIN www.$DOMAIN;
+
+    # >>> Your SSL certificate paths <<<
+    ssl_certificate /etc/nginx/ssl-certificates/$DOMAIN.crt;
+    ssl_certificate_key /etc/nginx/ssl-certificates/$DOMAIN.key;
+    # ssl_trusted_certificate /etc/nginx/ssl-certificates/fullchain.pem; # Optional, for SSL stapling warnings
+
+    # >>> CRITICAL: This is the root directory for your frontend files <<<
+    root $SITE_DIR/htdocs;
+    index index.html index.htm; # Default files to look for
+
+    # >>> Your existing API proxy block goes INSIDE this server block <<<
+    location /api/ {
+        proxy_pass http://127.0.0.1:$PORT/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+    }
+
+    # >>> CRITICAL: This handles all other frontend requests (including Vue Router history mode) <<<
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+
+    # Optional: Error page configuration
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+    }
+
+    # Optional: Caching for static assets (good practice)
+    location ~* \.(css|js|gif|jpe?g|png|svg|eot|otf|ttf|woff|woff2)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+        try_files \$uri =404;
+    }
 }
 EOF
 
+# Create symlink to enable the site
+ln -sf "$NGINX_SITE_CONF" "$NGINX_SYMLINK"
+
+# Remove the default Nginx site config if it exists (to prevent conflicts)
+if [ -f "/etc/nginx/sites-enabled/default" ]; then
+    echo "Removing default Nginx site config to prevent conflicts..."
+    rm "/etc/nginx/sites-enabled/default"
+fi
+
+# ... (then test and reload Nginx) ...
+echo "Testing Nginx configuration and reloading..."
 nginx -t && systemctl reload nginx
+echo "✅ Nginx configured for $DOMAIN."
 
 # === 9. Setup PostgreSQL schema if exists ===
 SCHEMA_SQL="$CLONE_DIR/backend/schema-pg.sql"
