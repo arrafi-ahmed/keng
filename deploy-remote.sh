@@ -36,6 +36,13 @@ set -e
 
 echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
 
+echo "Ensuring base directory permissions for system users..."
+# Grant execute/traverse permission to 'others' on /home/keng/htdocs
+# This is crucial for Nginx (www-data) and PostgreSQL (postgres) to access your site files
+chmod o+x /home/keng/htdocs
+# You may also need this for /home/keng if it's too restrictive (check 'ls -ld /home/keng')
+chmod o+x /home/keng
+
 # === 0.0 Install Node.js and npm ===
 echo "🛠 Installing Node.js and npm (if not installed)..."
 if ! command -v node &> /dev/null; then
@@ -163,39 +170,16 @@ if [ -d "$SITE_DIR/public_backup" ]; then
   mv "$SITE_DIR/public_backup" "$SITE_DIR/backend/public"
 fi
 
-# ... (after "✅ Frontend deployed to $SITE_DIR/htdocs"
-# and after "cp -r "$CLONE_DIR/backend/"* "$SITE_DIR/backend/") ...
-
 echo "Changing ownership and permissions for site files..."
-
-# 1. Change ownership of the entire site directory to SITE_USER
-#    This is crucial so your Node.js app (running as SITE_USER) has full control
 chown -R "$SITE_USER:$SITE_USER" "$SITE_DIR"
-
-# 2. Set general permissions for the site content
-#    - Directories (d): rwxr-xr-x (755) -> Owner (SITE_USER) full control, Group/Others can traverse and read.
-#      This allows Nginx (www-data) to traverse directories.
-#    - Files (f): rw-r--r-- (644) -> Owner (SITE_USER) read/write, Group/Others can read.
-#      This allows Nginx (www-data) to read your static frontend files.
 find "$SITE_DIR" -type d -exec chmod 755 {} \;
 find "$SITE_DIR" -type f -exec chmod 644 {} \;
-
-# 3. CRITICAL: Explicitly set permissions for sensitive files (like .env)
-#    Only the owner (SITE_USER) should be able to read these.
 chmod 600 "$SITE_DIR/backend/.env.production"
-# You might also want to do this for frontend .env.production if it contains sensitive data
-chmod 600 "$CLONE_DIR/frontend/.env.production" # (if it contains secrets not meant for browser)
-
-# 4. Explicit fix for the schema-pg.sql, ensuring it's readable by postgres user
-#    This specific file is in CLONE_DIR, not SITE_DIR, and needs to be readable by postgres.
-#    Keep this line in the "Setup PostgreSQL schema if exists" section where it's needed.
-#    It's temporary as CLONE_DIR gets removed.
-# chmod -R o+rX "$CLONE_DIR/backend" # If the issue persists, ensure this is in the right place
-#    (I.e., before the psql -f command, but after the clone)
+# Ensure this is still in the schema setup section for the temporary file
+# chmod -R o+rX "$CLONE_DIR/backend"
 
 echo "✅ File ownership and permissions updated for $SITE_DIR."
-
-# ... (then proceed with Nginx setup, PM2 start, etc.) ...
+echo "✅ File ownership and permissions updated for $SITE_DIR."
 
 # === 6. Setup Node app ===
 cd "$SITE_DIR/backend"
