@@ -32,16 +32,16 @@ SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
 ### ====================== ###
 
-set -e
+set -e # Exit immediately if a command exits with a non-zero status
 
 echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
 
 echo "Ensuring base directory permissions for system users..."
-# Grant execute/traverse permission to 'others' on /home/keng/htdocs
+# Grant execute/traverse permission to 'others' on /home/$SITE_USER/htdocs
 # This is crucial for Nginx (www-data) and PostgreSQL (postgres) to access your site files
-chmod o+x /home/keng/htdocs
-# You may also need this for /home/keng if it's too restrictive (check 'ls -ld /home/keng')
-chmod o+x /home/keng
+chmod o+x "/home/$SITE_USER/htdocs"
+# You may also need this for /home/$SITE_USER if it's too restrictive (check 'ls -ld /home/$SITE_USER')
+chmod o+x "/home/$SITE_USER"
 
 # === 0.0 Install Node.js and npm ===
 echo "🛠 Installing Node.js and npm (if not installed)..."
@@ -52,7 +52,6 @@ if ! command -v node &> /dev/null; then
   rm -f /etc/apt/sources.list.d/nodesource.list.save
 
   # Add NodeSource APT repository (e.g., Node.js 20.x, adjust version as needed)
-  # You can change nodesource_setup.sh to 18, 20, 22 based on your app's needs
   curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
   apt update
   apt install -y nodejs
@@ -132,7 +131,6 @@ cd "$CLONE_DIR/frontend"
 
 # VERY IMPORTANT: Clear npm cache before install
 echo "🧹 Cleaning npm cache before install..."
-# Separate commands for clearer error reporting in the script logs
 npm cache clean --force
 
 echo "📦 Installing npm dependencies..."
@@ -193,35 +191,217 @@ module.exports = {
 };
 EOF
 
+# === CRITICAL: Correct File Ownership and Permissions ===
+# This MUST run AFTER npm install and ecosystem.config.js creation
 echo "Changing ownership and permissions for site files..."
 chown -R "$SITE_USER:$SITE_USER" "$SITE_DIR"
 find "$SITE_DIR" -type d -exec chmod 755 {} \;
 find "$SITE_DIR" -type f -exec chmod 644 {} \;
 chmod 600 "$SITE_DIR/backend/.env.production"
-# Ensure this is still in the schema setup section for the temporary file
+# Permissions for the temporary clone directory before it's removed
 chmod -R o+rX "$CLONE_DIR/backend"
 
 echo "✅ File ownership and permissions updated for $SITE_DIR."
 
-# Start/Restart the PM2 application AS THE SITE USER
+# === 7.1 Automate PM2 Daemon Startup Script Setup ===
+echo "⚙️ Setting up PM2 daemon to start on boot for user $SITE_USER..."
+
+# Remove any old conflicting PM2 systemd services for this user, and root
+# This ensures a clean state for the systemd service creation
+echo "Stopping and removing any conflicting PM2 systemd services..."
+for svc_user in "$SITE_USER" root; do
+    if systemctl list-units --all | grep -q "pm2-$svc_user.service"; then
+        echo "Processing pm2-$svc_user.service..."
+        sudo systemctl stop "pm2-$svc_user.service" || true
+        sudo systemctl disable "pm2-$svc_user.service" || true
+        sudo rm "/etc/systemd/system/pm2-$svc_user.service"
+    fi
+done
+sudo systemctl daemon-reload # Reload systemd to recognize changes
+sudo systemctl reset-failed # Clear any failed states
+
+# Also ensure local PM2 daemon for SITE_USER is killed and .pm2 directory is clean
+sudo -u "$SITE_USER" pm2 kill || true
+sudo rm -rf "/home/$SITE_USER/.pm2"
+
+# Generate the PM2 startup command for the SITE_USER
+echo "Generating PM2 startup command for $SITE_USER..."
+PM2_STARTUP_OUTPUT=$(sudo -u "$SITE_USER" pm2 startup)
+
+# Extract the command (it's usually the line starting with 'sudo env PATH=')
+PM2_COMMAND=$(echo "$PM2_STARTUP_OUTPUT" | awk '/^sudo env PATH=/{print}')
+
+if [ -n "$PM2_COMMAND" ]; then
+    echo "Executing generated PM2 startup command for $SITE_USER..."
+    # Execute the extracted command. This ensures the systemd service is created and enabled correctly.
+    eval "$PM2_COMMAND"
+    echo "✅ PM2 daemon startup script configured and enabled."
+
+    # Ensure the PM2 daemon service for the user is running right now
+    echo "Starting PM2 daemon service for $SITE_USER..."
+    sudo systemctl start "pm2-$SITE_USER.service"
+    systemctl status "pm2-$SITE_USER.service" --no-pager # Display status
+    echo "✅ PM2 daemon for $SITE_USER is active."
+else
+    echo "⚠️ ERROR: Could not extract PM2 startup command. Manual setup for PM2 daemon might be required."
+fi
+
+
+# === 7.2 Start/Manage PM2 Application ===
 echo "🚀 Starting/Restarting backend with PM2 as $SITE_USER..."
+# Ensure the PM2 process is managed by the correct user's daemon
 sudo -u "$SITE_USER" pm2 start "$SITE_DIR/backend/ecosystem.config.js" --env production || sudo -u "$SITE_USER" pm2 restart "$PROJECT_NAME-api"
 
 # Save the PM2 process list to ensure it persists across reboots for the site user
 echo "💾 Saving PM2 process list for $SITE_USER..."
 sudo -u "$SITE_USER" pm2 save
 
-# IMPORTANT: The 'pm2 startup' command is a one-time server setup for the systemd service.
-# It should NOT be run every time by the deploy script.
-# The systemd service was set up manually in Phase 2.
-# Do NOT uncomment or include 'pm2 startup' here.
+
+# === 8. Take over Nginx configuration from CloudPanel ===
+# IMPORTANT: This section will overwrite CloudPanel's default Nginx VHost for your domain.
+# If CloudPanel regenerates its config (e.g., on UI save, SSL renew), you must re-run this script.
+NGINX_SITE_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
+NGINX_SYMLINK="/etc/nginx/sites-enabled/$DOMAIN.conf"
+
+echo "🌐 Taking over Nginx configuration for $DOMAIN from CloudPanel..."
+
+# Remove any existing CloudPanel-managed symlink to ensure our file is used
+sudo rm -f "$NGINX_SYMLINK"
+
+# Generate the full Nginx site configuration.
+# This includes CloudPanel's placeholders for dynamic parts, plus our custom locations.
+cat <<EOF > "$NGINX_SITE_CONF"
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
+  {{ssl_certificate_key}}
+  {{ssl_certificate}}
+  server_name www.$DOMAIN;
+  return 301 https://$DOMAIN$request_uri;
+}
+
+server {
+  listen 80;
+  listen [::]:80;
+  listen 443 quic;
+  listen 443 ssl;
+  listen [::]:443 quic;
+  listen [::]:443 ssl;
+  http2 on;
+  http3 off;
+  {{ssl_certificate_key}}
+  {{ssl_certificate}}
+  server_name $DOMAIN www.$DOMAIN;
+  root /home/$SITE_USER/htdocs/$DOMAIN/htdocs; # Explicitly set root for frontend serving
+
+  {{nginx_access_log}}
+  {{nginx_error_log}}
+
+  if ($scheme != "https") {
+    rewrite ^ https://$host$request_uri permanent;
+  }
+
+  location ~ /.well-known {
+    auth_basic off;
+    allow all;
+  }
+
+  {{settings}}
+
+  # Backend API Proxy
+  location /api/ {
+    proxy_pass http://127.0.0.1:$PORT/api/; # Corrected proxy_pass path
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_cache_bypass \$http_upgrade;
+    proxy_redirect off;
+  }
+
+  # Frontend Vue.js History Mode & Static Files
+  location / {
+    try_files \$uri \$uri/ /index.html; # For Vue Router History Mode
+    # The default CloudPanel location block usually has proxy_pass to 8080 or Varnish.
+    # By defining `location /` here, we are overriding that default.
+    # Include any other proxy headers from the original CloudPanel location / block if needed for Varnish interaction.
+    # Given that try_files handles static files, this might be sufficient.
+  }
+
+  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map|mjs)$ {
+    add_header Access-Control-Allow-Origin "*";
+    add_header alt-svc 'h3=":443"; ma=86400';
+    expires max;
+    access_log off;
+  }
+
+  location ~ /\.(ht|svn|git) {
+    deny all;
+  }
+
+  if (-f \$request_filename) {
+    break;
+  }
+}
+
+# The 8080 server block (often for PHP-FPM or internal proxy)
+server {
+  listen 8080;
+  listen [::]:8080;
+  server_name $DOMAIN www.$DOMAIN; # Corrected www1 to www
+  root /home/$SITE_USER/htdocs/$DOMAIN/htdocs; # Ensure root matches main server block
+
+  include /etc/nginx/global_settings;
+
+  try_files \$uri \$uri/ /index.php?\$args;
+  index index.php index.html;
+
+  location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_intercept_errors on;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    try_files \$uri =404;
+    fastcgi_read_timeout 3600;
+    fastcgi_send_timeout 3600;
+    fastcgi_param HTTPS "on";
+    fastcgi_param SERVER_PORT 443;
+    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+    fastcgi_param PHP_VALUE "{{php_settings}}";
+  }
+
+  if (-f \$request_filename) {
+    break;
+  }
+}
+EOF
+
+# Create symlink to enable the site
+sudo ln -sf "$NGINX_SITE_CONF" "$NGINX_SYMLINK"
+
+# Remove the default Nginx site config if it exists (to prevent conflicts)
+if [ -f "/etc/nginx/sites-enabled/default" ]; then
+    echo "Removing default Nginx site config to prevent conflicts..."
+    sudo rm "/etc/nginx/sites-enabled/default"
+fi
+
+echo "Testing Nginx configuration and reloading..."
+sudo nginx -t && sudo systemctl reload nginx
+echo "✅ Nginx configured for $DOMAIN."
 
 # === 9. Setup PostgreSQL schema if exists ===
 SCHEMA_SQL="$CLONE_DIR/backend/schema-pg.sql"
 if [ -f "$SCHEMA_SQL" ]; then
   echo "📄 Running schema-pg.sql..."
    # Set temporary ownership and permissions for schema-pg.sql for the postgres user
-   # This makes the file owned by postgres and only readable by postgres user
    chown postgres:postgres "$SCHEMA_SQL"
    chmod 600 "$SCHEMA_SQL" # owner (postgres) read/write, no access for group/others
 
