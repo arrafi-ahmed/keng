@@ -37,7 +37,7 @@ SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
 ### ====================== ###
 
-#set -e
+set -e
 
 echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
 
