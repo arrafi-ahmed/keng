@@ -97,10 +97,55 @@ rm -rf "$CLONE_DIR/backend/package-lock.json"
 echo "🛠 Building frontend..."
 cd "$CLONE_DIR/frontend"
 
+# DEBUG: Print current working directory
+echo "DEBUG: Current directory: $(pwd)"
+
+# DEBUG: Print the PATH environment variable
+echo "DEBUG: PATH in script: $PATH"
+
+# DEBUG: Verify node and npm executables are found in PATH
+echo "DEBUG: Which node: $(which node)"
+echo "DEBUG: Which npm: $(which npm)"
+
 # VERY IMPORTANT: Clear npm cache before install
-echo "🧹 Cleaning cache before install..."
-rm -rf node_modules .vite dist vite.config.mjs.timestamp-*
-npm cache clean --force && npm install && npm run build
+echo "🧹 Cleaning npm cache before install..."
+# Separate commands for clearer error reporting in the script logs
+npm cache clean --force
+if [ $? -ne 0 ]; then
+  echo "ERROR: npm cache clean failed. Exiting."
+  exit 1
+fi
+
+echo "📦 Installing npm dependencies..."
+npm install --legacy-peer-deps
+if [ $? -ne 0 ]; then
+  echo "ERROR: npm install failed. Exiting. Check logs above for details."
+  # Add the specific debug check here again for immediate feedback
+  if [ ! -d "node_modules/unplugin-auto-import" ]; then
+    echo "ERROR: unplugin-auto-import directory still DOES NOT exist after npm install attempt."
+    ls -la node_modules/ # List content of node_modules for inspection
+  fi
+  exit 1
+fi
+
+# Add the explicit verification again, even if npm install reported success
+echo "DEBUG: Verifying unplugin-auto-import after npm install..."
+if [ -d "node_modules/unplugin-auto-import" ]; then
+  echo "DEBUG: unplugin-auto-import directory exists. Proceeding with build."
+else
+  echo "ERROR: unplugin-auto-import directory DOES NOT exist, even though npm install claimed success. This is problematic."
+  ls -la node_modules/ # List content of node_modules for inspection
+  exit 1 # Exit if the core dependency is missing
+fi
+
+echo "🏗 Running frontend build..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "ERROR: npm run build failed. Exiting."
+  exit 1
+fi
+
+echo "✅ Frontend build complete."
 
 rm -rf "$SITE_DIR/htdocs"
 mkdir -p "$SITE_DIR/htdocs"
