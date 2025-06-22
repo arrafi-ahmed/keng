@@ -37,7 +37,7 @@ SITE_DIR="/home/$SITE_USER/htdocs/$DOMAIN"
 CLONE_DIR="$SITE_DIR/tmp-deploy"
 ### ====================== ###
 
-set -e
+#set -e
 
 echo -e "\n🚀 Starting deployment for $PROJECT_NAME on $DOMAIN..."
 
@@ -98,7 +98,8 @@ echo "🛠 Building frontend..."
 cd "$CLONE_DIR/frontend"
 
 # VERY IMPORTANT: Clear npm cache before install
-echo "🧹 Cleaning npm cache before install..."
+echo "🧹 Cleaning cache before install..."
+rm -rf node_modules .vite dist vite.config.mjs.timestamp-*
 npm cache clean --force && npm install && npm run build
 
 rm -rf "$SITE_DIR/htdocs"
