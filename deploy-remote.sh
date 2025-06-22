@@ -181,7 +181,7 @@ module.exports = {
   apps: [{
     name: "$PROJECT_NAME-api",
     script: "app.js",
-    cwd: "$SITE_DIR/backend", # <--- ADD THIS LINE HERE
+    cwd: "$SITE_DIR/backend",
     instances: 1,
     autorestart: true,
     watch: false,
