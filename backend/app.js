@@ -34,11 +34,11 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 // Routes
-app.use("/backend/user", require("./src/controller/user"));
-app.use("/backend/product", require("./src/controller/product"));
-app.use("/backend/scanAnalytics", require("./src/controller/scanAnalytics"));
-app.use("/backend/customerInsights", require("./src/controller/customerInsights"));
-app.use("/backend/stripe", require("./src/controller/stripe").router);
+app.use("/api/user", require("./src/controller/user"));
+app.use("/api/product", require("./src/controller/product"));
+app.use("/api/scanAnalytics", require("./src/controller/scanAnalytics"));
+app.use("/api/customerInsights", require("./src/controller/customerInsights"));
+app.use("/api/stripe", require("./src/controller/stripe").router);
 
 app.get("/api/info", (req, res) => {
   res.status(200).json(appInfo);
