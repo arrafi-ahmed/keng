@@ -169,17 +169,6 @@ if [ -d "$SITE_DIR/public_backup" ]; then
   mv "$SITE_DIR/public_backup" "$SITE_DIR/backend/public"
 fi
 
-echo "Changing ownership and permissions for site files..."
-chown -R "$SITE_USER:$SITE_USER" "$SITE_DIR"
-find "$SITE_DIR" -type d -exec chmod 755 {} \;
-find "$SITE_DIR" -type f -exec chmod 644 {} \;
-chmod 600 "$SITE_DIR/backend/.env.production"
-# Ensure this is still in the schema setup section for the temporary file
-# chmod -R o+rX "$CLONE_DIR/backend"
-
-echo "✅ File ownership and permissions updated for $SITE_DIR."
-echo "✅ File ownership and permissions updated for $SITE_DIR."
-
 # === 6. Setup Node app ===
 cd "$SITE_DIR/backend"
 echo "📦 Installing backend dependencies..."
@@ -202,6 +191,16 @@ module.exports = {
   }]
 };
 EOF
+
+echo "Changing ownership and permissions for site files..."
+chown -R "$SITE_USER:$SITE_USER" "$SITE_DIR"
+find "$SITE_DIR" -type d -exec chmod 755 {} \;
+find "$SITE_DIR" -type f -exec chmod 644 {} \;
+chmod 600 "$SITE_DIR/backend/.env.production"
+# Ensure this is still in the schema setup section for the temporary file
+chmod -R o+rX "$CLONE_DIR/backend"
+
+echo "✅ File ownership and permissions updated for $SITE_DIR."
 
 pm2 start ecosystem.config.js || pm2 restart "$PROJECT_NAME-api"
 pm2 save
