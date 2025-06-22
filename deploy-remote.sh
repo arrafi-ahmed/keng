@@ -117,7 +117,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "📦 Installing npm dependencies..."
-npm install --legacy-peer-deps
+NODE_ENV=development npm install
 if [ $? -ne 0 ]; then
   echo "ERROR: npm install failed. Exiting. Check logs above for details."
   # Add the specific debug check here again for immediate feedback
@@ -139,7 +139,8 @@ else
 fi
 
 echo "🏗 Running frontend build..."
-npm run build
+NODE_ENV=production npm run build
+
 if [ $? -ne 0 ]; then
   echo "ERROR: npm run build failed. Exiting."
   exit 1
