@@ -153,6 +153,8 @@ echo "📁 Syncing backend..."
 rm -rf "$SITE_DIR/backend"
 mkdir -p "$SITE_DIR/backend"
 cp -r "$CLONE_DIR/backend/"* "$SITE_DIR/backend/"
+# CRITICAL: Explicitly copy the .env.production file for the backend
+cp "$CLONE_DIR/backend/.env.production" "$SITE_DIR/backend/.env.production"
 
 # === 5. Restore /public/ if it was backed up ===
 if [ -d "$SITE_DIR/public_backup" ]; then
