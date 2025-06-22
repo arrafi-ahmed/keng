@@ -88,15 +88,18 @@ echo "📁 Placing .env files into backend and frontend..."
 cp "/root/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
 cp "/root/.env.backend.production" "$CLONE_DIR/backend/.env.production"
 
+# === 1.2 Clean package-lock from both frontend & backend ===
+echo "🧹 Cleaning package-lock.json..."
+rm -rf "$CLONE_DIR/frontend/package-lock.json"
+rm -rf "$CLONE_DIR/backend/package-lock.json"
+
 # === 2. Build frontend ===
 echo "🛠 Building frontend..."
 cd "$CLONE_DIR/frontend"
 
 # VERY IMPORTANT: Clear npm cache before install
 echo "🧹 Cleaning npm cache before install..."
-npm cache clean --force
-npm install
-npm run build
+npm cache clean --force && npm install && npm run build
 
 rm -rf "$SITE_DIR/htdocs"
 mkdir -p "$SITE_DIR/htdocs"
