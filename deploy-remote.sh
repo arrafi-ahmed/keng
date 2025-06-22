@@ -226,28 +226,7 @@ sudo rm -rf "/home/$SITE_USER/.pm2"
 
 # Generate the PM2 startup command for the SITE_USER
 echo "Generating PM2 startup command for $SITE_USER..."
-PM2_STARTUP_OUTPUT=$(sudo -u "$SITE_USER" pm2 startup)
-
-# Extract the command (it's usually the line starting with 'sudo env PATH=')
-# This version correctly handles the 'sudo' prefix emitted by PM2 and removes it.
-PM2_COMMAND=$(echo "$PM2_STARTUP_OUTPUT" | awk '/^sudo env PATH=/{ sub("sudo ", "", $0); print }')
-
-if [ -n "$PM2_COMMAND" ]; then
-    echo "Executing generated PM2 startup command for $SITE_USER..."
-    # Execute the extracted command. This ensures the systemd service is created and enabled correctly.
-    # The 'eval' command runs the string as a shell command.
-    eval "$PM2_COMMAND"
-    echo "✅ PM2 daemon startup script configured and enabled."
-
-    # Ensure the PM2 daemon service for the user is running right now
-    echo "Starting PM2 daemon service for $SITE_USER..."
-    sudo systemctl start "pm2-$SITE_USER.service"
-    systemctl status "pm2-$SITE_USER.service" --no-pager # Display status
-    echo "✅ PM2 daemon for $SITE_USER is active."
-else
-    echo "⚠️ ERROR: Could not extract PM2 startup command. Manual setup for PM2 daemon might be required."
-fi
-
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u "$SITE_USER" --hp "/home/$SITE_USER"
 
 # === 7.2 Start/Manage PM2 Application ===
 echo "🚀 Starting/Restarting backend with PM2 as $SITE_USER..."
