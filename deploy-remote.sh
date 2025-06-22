@@ -203,9 +203,18 @@ chmod -R o+rX "$CLONE_DIR/backend"
 
 echo "✅ File ownership and permissions updated for $SITE_DIR."
 
-pm2 start ecosystem.config.js || pm2 restart "$PROJECT_NAME-api"
-pm2 save
-pm2 startup
+# Start/Restart the PM2 application AS THE SITE USER
+echo "🚀 Starting/Restarting backend with PM2 as $SITE_USER..."
+sudo -u "$SITE_USER" pm2 start "$SITE_DIR/backend/ecosystem.config.js" --env production || sudo -u "$SITE_USER" pm2 restart "$PROJECT_NAME-api"
+
+# Save the PM2 process list to ensure it persists across reboots for the site user
+echo "💾 Saving PM2 process list for $SITE_USER..."
+sudo -u "$SITE_USER" pm2 save
+
+# IMPORTANT: The 'pm2 startup' command is a one-time server setup for the systemd service.
+# It should NOT be run every time by the deploy script.
+# The systemd service was set up manually in Phase 2.
+# Do NOT uncomment or include 'pm2 startup' here.
 
 # === 8. Setup Nginx for full site serving (Frontend + Backend Proxy) ===
 NGINX_SITE_CONF="/etc/nginx/sites-available/$DOMAIN.conf"
