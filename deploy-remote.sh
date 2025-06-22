@@ -175,12 +175,13 @@ echo "📦 Installing backend dependencies..."
 npm install
 
 # === 7. Setup PM2 ecosystem config ===
-echo "⚙️ Setting up PM2..."
+echo "⚙️ Setting up PM2 ecosystem.config.js..."
 cat <<EOF > ecosystem.config.js
 module.exports = {
   apps: [{
     name: "$PROJECT_NAME-api",
     script: "app.js",
+    cwd: "$SITE_DIR/backend", # <--- ADD THIS LINE HERE
     instances: 1,
     autorestart: true,
     watch: false,
