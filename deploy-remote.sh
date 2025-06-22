@@ -229,11 +229,13 @@ echo "Generating PM2 startup command for $SITE_USER..."
 PM2_STARTUP_OUTPUT=$(sudo -u "$SITE_USER" pm2 startup)
 
 # Extract the command (it's usually the line starting with 'sudo env PATH=')
-PM2_COMMAND=$(echo "$PM2_STARTUP_OUTPUT" | awk '/^sudo env PATH=/{print}')
+# This version correctly handles the 'sudo' prefix emitted by PM2 and removes it.
+PM2_COMMAND=$(echo "$PM2_STARTUP_OUTPUT" | awk '/^sudo env PATH=/{ sub("sudo ", "", $0); print }')
 
 if [ -n "$PM2_COMMAND" ]; then
     echo "Executing generated PM2 startup command for $SITE_USER..."
     # Execute the extracted command. This ensures the systemd service is created and enabled correctly.
+    # The 'eval' command runs the string as a shell command.
     eval "$PM2_COMMAND"
     echo "✅ PM2 daemon startup script configured and enabled."
 
@@ -303,8 +305,8 @@ server {
   {{nginx_access_log}}
   {{nginx_error_log}}
 
-  if ($scheme != "https") {
-    rewrite ^ https://$host$request_uri permanent;
+  if (\$scheme != "https") {
+    rewrite ^ https://\$host\$request_uri permanent;
   }
 
   location ~ /.well-known {
@@ -356,7 +358,7 @@ server {
 server {
   listen 8080;
   listen [::]:8080;
-  server_name $DOMAIN www.$DOMAIN; # Corrected www1 to www
+  server_name $DOMAIN www.$DOMAIN;
   root /home/$SITE_USER/htdocs/$DOMAIN/htdocs; # Ensure root matches main server block
 
   include /etc/nginx/global_settings;
