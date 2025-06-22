@@ -4,18 +4,13 @@
 set -x
 
 ### === CONFIGURATION === ###
-REMOTE_FRONTEND_ENV="/root/.env.frontend.production"
-REMOTE_BACKEND_ENV="/root/.env.backend.production"
-
-echo "DEBUG: Current directory (before checks): $(pwd)"
-echo "DEBUG: Checking for backend env at: $REMOTE_BACKEND_ENV"
+ROOT_DIR="/root"
+REMOTE_FRONTEND_ENV="$ROOT_DIR/.env.frontend.production"
+REMOTE_BACKEND_ENV="$ROOT_DIR/.env.backend.production"
 
 # Check if the backend env file exists before proceeding
 if [ ! -f "$REMOTE_BACKEND_ENV" ]; then
   echo "❌ Missing backend env file: $REMOTE_BACKEND_ENV"
-  # Add more debug for what's actually in /root
-  echo "DEBUG: Contents of /root/:"
-  ls -la /root/
   exit 1
 fi
 
@@ -78,6 +73,38 @@ if ! command -v psql &> /dev/null; then
   systemctl start postgresql
 fi
 
+# === 0.1 Configure PostgreSQL DB/User ===
+echo "⚙️ Configuring PostgreSQL database and user..."
+
+# Create database user if it doesn't exist
+# Note: In PostgreSQL, "user" and "role" are largely interchangeable. pg_roles is the catalog table.
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
+  echo "Creating PostgreSQL user: $DB_USER..."
+  sudo -u postgres psql -c "CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';"
+else
+  echo "PostgreSQL user '$DB_USER' already exists. Skipping creation."
+fi
+
+# Create database if it doesn't exist
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
+  echo "Creating PostgreSQL database: $DB_NAME with owner: $DB_USER..."
+  sudo -u postgres psql -c "CREATE DATABASE $DB_NAME WITH OWNER $DB_USER;"
+else
+  echo "PostgreSQL database '$DB_NAME' already exists. Skipping creation."
+fi
+
+# Grant all privileges on the database to the user
+echo "Granting all privileges on database $DB_NAME to user $DB_USER..."
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
+
+# Grant all privileges on the public schema (this is important for most apps)
+# This command needs to be executed while connected to the specific database
+echo "Granting all privileges on public schema in $DB_NAME to user $DB_USER..."
+sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL ON SCHEMA public TO $DB_USER;"
+
+echo "✅ PostgreSQL database and user configured."
+
+
 # === 1. Clone fresh repo ===
 echo "🔄 Cloning repo..."
 rm -rf "$CLONE_DIR"
@@ -85,8 +112,8 @@ git clone "$REPO_URL" "$CLONE_DIR"
 
 # === 1.1 Move env files to correct locations ===
 echo "📁 Placing .env files into backend and frontend..."
-cp "/root/.env.frontend.production" "$CLONE_DIR/frontend/.env.production"
-cp "/root/.env.backend.production" "$CLONE_DIR/backend/.env.production"
+cp "$REMOTE_FRONTEND_ENV" "$CLONE_DIR/frontend/.env.production"
+cp "$REMOTE_BACKEND_ENV" "$CLONE_DIR/backend/.env.production"
 
 # === 1.2 Clean package-lock from both frontend & backend ===
 echo "🧹 Cleaning package-lock.json..."
@@ -97,54 +124,16 @@ rm -rf "$CLONE_DIR/backend/package-lock.json"
 echo "🛠 Building frontend..."
 cd "$CLONE_DIR/frontend"
 
-# DEBUG: Print current working directory
-echo "DEBUG: Current directory: $(pwd)"
-
-# DEBUG: Print the PATH environment variable
-echo "DEBUG: PATH in script: $PATH"
-
-# DEBUG: Verify node and npm executables are found in PATH
-echo "DEBUG: Which node: $(which node)"
-echo "DEBUG: Which npm: $(which npm)"
-
 # VERY IMPORTANT: Clear npm cache before install
 echo "🧹 Cleaning npm cache before install..."
 # Separate commands for clearer error reporting in the script logs
 npm cache clean --force
-if [ $? -ne 0 ]; then
-  echo "ERROR: npm cache clean failed. Exiting."
-  exit 1
-fi
 
 echo "📦 Installing npm dependencies..."
 NODE_ENV=development npm install
-if [ $? -ne 0 ]; then
-  echo "ERROR: npm install failed. Exiting. Check logs above for details."
-  # Add the specific debug check here again for immediate feedback
-  if [ ! -d "node_modules/unplugin-auto-import" ]; then
-    echo "ERROR: unplugin-auto-import directory still DOES NOT exist after npm install attempt."
-    ls -la node_modules/ # List content of node_modules for inspection
-  fi
-  exit 1
-fi
-
-# Add the explicit verification again, even if npm install reported success
-echo "DEBUG: Verifying unplugin-auto-import after npm install..."
-if [ -d "node_modules/unplugin-auto-import" ]; then
-  echo "DEBUG: unplugin-auto-import directory exists. Proceeding with build."
-else
-  echo "ERROR: unplugin-auto-import directory DOES NOT exist, even though npm install claimed success. This is problematic."
-  ls -la node_modules/ # List content of node_modules for inspection
-  exit 1 # Exit if the core dependency is missing
-fi
 
 echo "🏗 Running frontend build..."
 NODE_ENV=production npm run build
-
-if [ $? -ne 0 ]; then
-  echo "ERROR: npm run build failed. Exiting."
-  exit 1
-fi
 
 echo "✅ Frontend build complete."
 
@@ -175,7 +164,7 @@ fi
 # === 6. Setup Node app ===
 cd "$SITE_DIR/backend"
 echo "📦 Installing backend dependencies..."
-npm install --legacy-peer-deps
+npm install
 
 # === 7. Setup PM2 ecosystem config ===
 echo "⚙️ Setting up PM2..."
@@ -227,7 +216,7 @@ fi
 # === 10. Cleanup ===
 echo "🧹 Cleaning up..."
 rm -rf "$CLONE_DIR"
-rm -f "/root/deploy-remote.sh"
-rm -f "/root/.env.frontend.production"
-rm -f "/root/.env.backend.production"
+rm -f "$ROOT_DIR/deploy-remote.sh"
+rm -f "$REMOTE_FRONTEND_ENV"
+rm -f "$REMOTE_BACKEND_ENV"
 echo -e "\n✅ Deployment complete! Visit: https://$DOMAIN"
