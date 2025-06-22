@@ -210,10 +210,15 @@ nginx -t && systemctl reload nginx
 SCHEMA_SQL="$CLONE_DIR/backend/schema-pg.sql"
 if [ -f "$SCHEMA_SQL" ]; then
   echo "📄 Running schema-pg.sql..."
-   # Set read permissions for others on the SQL file
-    # This ensures the 'postgres' user can read the file
-    chmod o+r "$SCHEMA_SQL" # 'o+r' means 'others' get 'read' permission
-  sudo -u postgres psql -d "$DB_NAME" -f "$SCHEMA_SQL"
+   # Set temporary ownership and permissions for schema-pg.sql for the postgres user
+   # This makes the file owned by postgres and only readable by postgres user
+   chown postgres:postgres "$SCHEMA_SQL"
+   chmod 600 "$SCHEMA_SQL" # owner (postgres) read/write, no access for group/others
+
+   sudo -u postgres psql -d "$DB_NAME" -f "$SCHEMA_SQL"
+
+   # No need to revert permissions as "$CLONE_DIR" is removed in the cleanup step later.
+   echo "✅ schema-pg.sql executed."
 fi
 
 # === 10. Cleanup ===
