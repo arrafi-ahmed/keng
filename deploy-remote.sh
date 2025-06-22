@@ -210,6 +210,9 @@ nginx -t && systemctl reload nginx
 SCHEMA_SQL="$CLONE_DIR/backend/schema-pg.sql"
 if [ -f "$SCHEMA_SQL" ]; then
   echo "📄 Running schema-pg.sql..."
+   # Set read permissions for others on the SQL file
+    # This ensures the 'postgres' user can read the file
+    chmod o+r "$SCHEMA_SQL" # 'o+r' means 'others' get 'read' permission
   sudo -u postgres psql -d "$DB_NAME" -f "$SCHEMA_SQL"
 fi
 
