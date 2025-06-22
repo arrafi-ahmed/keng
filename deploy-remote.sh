@@ -185,7 +185,7 @@ module.exports = {
     instances: 1,
     autorestart: true,
     watch: false,
-    env: {
+    env_production: {
       NODE_ENV: "production",
       PORT: "$PORT"
     }
