@@ -95,21 +95,7 @@ cd "$CLONE_DIR/frontend"
 # VERY IMPORTANT: Clear npm cache before install
 echo "🧹 Cleaning npm cache before install..."
 npm cache clean --force
-
-# Now run npm install
-npm install --legacy-peer-deps # Keep this for now, given your previous need for it
-
-# Add a debug step to verify the module's presence after install
-echo "DEBUG: Verifying unplugin-auto-import after npm install..."
-if [ -d "node_modules/unplugin-auto-import" ]; then
-  echo "DEBUG: unplugin-auto-import directory exists."
-  ls -la node_modules/unplugin-auto-import/
-else
-  echo "DEBUG: unplugin-auto-import directory DOES NOT exist. This is problematic."
-  ls -la node_modules/ # List content of node_modules for inspection
-  exit 1 # Exit if the core dependency is missing
-fi
-
+npm install
 npm run build
 
 rm -rf "$SITE_DIR/htdocs"
