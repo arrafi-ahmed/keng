@@ -136,13 +136,8 @@ echo "7.4 Deploying built frontend files to $FRONTEND_SITE_DIR."
 
 DIST_DIR="$FRONTEND_SITE_DIR/frontend/dist"
 
-if [ ! -d "$DIST_DIR" ] || [ -z "$(ls -A "$DIST_DIR")" ]; then
-  echo "❌ Build failed or dist folder is empty: $DIST_DIR"
-  exit 1
-fi
-
-# Now remove only the PUBLIC FILES, not the frontend source itself
-find "$FRONTEND_SITE_DIR" -mindepth 1 ! -name 'frontend' -exec rm -rf {} +
+echo "♻️ Cleaning up old frontend deployment (excluding ./frontend)..."
+find "$FRONTEND_SITE_DIR" -mindepth 1 -path "$FRONTEND_SITE_DIR/frontend" -prune -o -exec rm -rf {} +
 
 # Deploy build
 cp -r "$DIST_DIR"/* "$FRONTEND_SITE_DIR/"
