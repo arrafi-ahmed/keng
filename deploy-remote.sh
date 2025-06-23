@@ -133,10 +133,19 @@ echo "✅ Frontend build complete."
 
 echo
 echo "7.4 Deploying built frontend files to $FRONTEND_SITE_DIR."
-# Clear all existing files in the frontend site directory before copying new ones
-find "$FRONTEND_SITE_DIR" -mindepth 1 -delete || true # Use find -delete for robustness
-# Alternatively, simpler for shallow directories: rm -rf "$FRONTEND_SITE_DIR"/* || true
-cp -r dist/* "$FRONTEND_SITE_DIR/"
+
+DIST_DIR="$FRONTEND_SITE_DIR/frontend/dist"
+
+if [ ! -d "$DIST_DIR" ] || [ -z "$(ls -A "$DIST_DIR")" ]; then
+  echo "❌ Build failed or dist folder is empty: $DIST_DIR"
+  exit 1
+fi
+
+# Now remove only the PUBLIC FILES, not the frontend source itself
+find "$FRONTEND_SITE_DIR" -mindepth 1 ! -name 'frontend' -exec rm -rf {} +
+
+# Deploy build
+cp -r "$DIST_DIR"/* "$FRONTEND_SITE_DIR/"
 
 echo
 echo "7.5 Setting correct ownership and permissions for frontend files."
