@@ -92,7 +92,7 @@ const pay = async () => {
 onMounted(async () => {
   try {
     stripe = await loadStripe(publishableKey);
-    const result = await $axios.post("/api/stripe/createPaymentIntent", {
+    const result = await $axios.post("/stripe/createPaymentIntent", {
       productId: route.params.productId,
     });
     fetchedProduct.value = result.data.payload?.product;

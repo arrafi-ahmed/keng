@@ -25,13 +25,13 @@ export const mutations = {
 
 export const actions = {
   async setStats({ commit }) {
-    const response = await $axios.get("/api/customerInsights/getStats");
+    const response = await $axios.get("/customerInsights/getStats");
     commit("setStats", response.data?.payload);
     return response.data?.payload;
   },
   async setRecentPurchases({ commit }, request) {
     const response = await $axios.get(
-      "/api/customerInsights/getRecentPurchases",
+      "/customerInsights/getRecentPurchases",
       {
         params: {
           fetchTotalCount: request.fetchTotalCount,
@@ -44,7 +44,7 @@ export const actions = {
     return response.data?.payload;
   },
   async setQrCodes({ commit }, request) {
-    const response = await $axios.get("/api/customerInsights/getQrCodes", {
+    const response = await $axios.get("/customerInsights/getQrCodes", {
       params: {
         fetchTotalCount: request.fetchTotalCount,
         offset: (request.page - 1) * request.itemsPerPage,
@@ -56,7 +56,7 @@ export const actions = {
   },
   async saveQrCode({ commit }, request) {
     const response = await $axios.post(
-      "/api/customerInsights/saveQrCode",
+      "/customerInsights/saveQrCode",
       request,
     );
     commit("addQrCode", response.data?.payload);

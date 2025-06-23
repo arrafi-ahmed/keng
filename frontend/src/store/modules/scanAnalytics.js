@@ -20,7 +20,7 @@ export const mutations = {
 
 export const actions = {
   async setScanAnalytics({ commit }) {
-    const response = await $axios.get("/api/scanAnalytics/getScanAnalytics");
+    const response = await $axios.get("/scanAnalytics/getScanAnalytics");
     commit("setScanAnalytics", response.data?.payload);
     return response.data?.payload;
   },

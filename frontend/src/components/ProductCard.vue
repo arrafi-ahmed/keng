@@ -23,7 +23,7 @@ const handleDownloadManual = async () => {
   if (!filename) return;
 
   store.commit("setProgress", true);
-  const apiEndpoint = `${apiBaseUrl}/api/product/downloadManual?filename=${filename}`;
+  const apiEndpoint = `${apiBaseUrl}/product/downloadManual?filename=${filename}`;
   await downloadFile(apiEndpoint);
   store.commit("setProgress", false);
 };

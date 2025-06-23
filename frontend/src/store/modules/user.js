@@ -49,7 +49,7 @@ export const mutations = {
 
 export const actions = {
   async signin({ commit }, request) {
-    const response = await $axios.post("/api/user/signin", request);
+    const response = await $axios.post("/user/signin", request);
     commit("setToken", response.headers?.authorization);
     commit("setCurrentUser", response.data?.payload?.currentUser);
     return response;
@@ -61,7 +61,7 @@ export const actions = {
   },
 
   async save({ commit }, request) {
-    const response = await $axios.post("/api/user/save", request);
+    const response = await $axios.post("/user/save", request);
     const actionType = request.id ? "edit" : "add";
     const actionName = `${actionType}User`;
     commit(actionName, response.data?.payload);
@@ -69,25 +69,25 @@ export const actions = {
   },
 
   async setUsers({ commit }) {
-    const response = await $axios.get("/api/user/getUsers");
+    const response = await $axios.get("/user/getUsers");
     commit("setUsers", response.data?.payload);
     return response;
   },
 
   async requestResetPass({ commit }, request) {
     const response = await $axios
-      .post("/api/user/requestResetPass", request)
+      .post("/user/requestResetPass", request)
     return response;
   },
 
   async submitResetPass({ commit }, request) {
     const response = await $axios
-      .post("/api/user/submitResetPass", request)
+      .post("/user/submitResetPass", request)
     return response;
   },
 
   async removeUser({ commit }, request) {
-    const response = await $axios.get("/api/user/removeUser", {
+    const response = await $axios.get("/user/removeUser", {
       params: { userId: request.id },
     });
     commit("removeUser", response.data?.payload);

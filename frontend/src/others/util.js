@@ -70,7 +70,7 @@ export const getClientPublicImageUrl = (imageName) =>
 
 export const getApiPublicFileUrl = (fileName, filePrefix) =>
   isProd
-    ? `${apiBaseUrl}/api/${filePrefix}/${fileName}`
+    ? `${apiBaseUrl}/backend/${filePrefix}/${fileName}`
     : `${apiBaseUrl}/${filePrefix}/${fileName}`;
 
 export const getUserImageUrl = (imageName) => {

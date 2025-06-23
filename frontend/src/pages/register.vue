@@ -34,7 +34,7 @@ const registerUser = async () => {
   await form.value.validate();
   if (!isFormValid.value) return;
 
-  $axios.post("/api/user/save", user).then((res) => {
+  $axios.post("/user/save", user).then((res) => {
     router.push({
       name: "signin",
     });

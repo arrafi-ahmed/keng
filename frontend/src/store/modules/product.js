@@ -45,12 +45,12 @@ export const mutations = {
 
 export const actions = {
   async save({ commit }, request) {
-    const response = await $axios.post("/api/product/save", request);
+    const response = await $axios.post("/product/save", request);
     return response.data?.payload;
   },
 
   async setProduct({ commit }, request) {
-    const response = await $axios.get("/api/product/getProduct", {
+    const response = await $axios.get("/product/getProduct", {
       params: {
         productId: request.productId,
       },
@@ -60,7 +60,7 @@ export const actions = {
   },
 
   async removeProduct({ commit }, request) {
-    const response = await $axios.get("/api/product/removeProduct", {
+    const response = await $axios.get("/product/removeProduct", {
       params: {
         productId: request.productId,
       },
@@ -70,7 +70,7 @@ export const actions = {
   },
 
   async setPublicProduct({ commit }, request) {
-    const response = await $axios.get("/api/product/getPublicProduct", {
+    const response = await $axios.get("/product/getPublicProduct", {
       params: {
         productId: request.productId,
         uuid: request.uuid,
@@ -81,7 +81,7 @@ export const actions = {
   },
 
   async setProductIdentity({ commit }, request) {
-    const response = await $axios.get("/api/product/getProductIdentity", {
+    const response = await $axios.get("/product/getProductIdentity", {
       params: {
         identityNo: request.identityNo,
       },
@@ -92,7 +92,7 @@ export const actions = {
 
   async setPublicProductNScan({ commit }, request) {
     const response = await $axios.post(
-      "/api/product/getPublicProductNScan",
+      "/product/getPublicProductNScan",
       request,
     );
     commit("setProduct", response.data?.payload);
@@ -100,7 +100,7 @@ export const actions = {
   },
 
   async setWarranty({ commit }, request) {
-    const response = await $axios.get("/api/product/getWarranty", {
+    const response = await $axios.get("/product/getWarranty", {
       params: {
         productIdentitiesId: request.productIdentitiesId,
       },
@@ -110,7 +110,7 @@ export const actions = {
   },
 
   async setWarrantyWProduct({ commit }, request) {
-    const response = await $axios.get("/api/product/getWarrantyWProduct", {
+    const response = await $axios.get("/product/getWarrantyWProduct", {
       params: {
         productId: request.productId,
         productIdentitiesId: request.productIdentitiesId,
@@ -124,7 +124,7 @@ export const actions = {
 
   async setWarrantyWProductNScan({ commit }, request) {
     const response = await $axios.post(
-      "/api/product/getWarrantyWProductNScan",
+      "/product/getWarrantyWProductNScan",
       request,
     );
     commit("setWarranty", response.data?.payload?.warranty);
@@ -133,7 +133,7 @@ export const actions = {
   },
 
   async saveWarranty({ commit }, request) {
-    const response = await $axios.post("/api/product/saveWarranty", request);
+    const response = await $axios.post("/product/saveWarranty", request);
     // const actionType = request.id ? "edit" : "add";
     // const actionName = `${actionType}Product`;
     // commit(actionName, response.data?.payload);
@@ -141,7 +141,7 @@ export const actions = {
   },
 
   async setProductsByUserId({ commit }, request) {
-    const response = await $axios.get("/api/product/getProductsByUserId", {
+    const response = await $axios.get("/product/getProductsByUserId", {
       params: {
         offset: request.offset,
         limit: request.limit,
@@ -153,12 +153,12 @@ export const actions = {
   },
 
   async bulkImport({ commit }, request) {
-    const response = await $axios.post("/api/product/bulkImport", request);
+    const response = await $axios.post("/product/bulkImport", request);
     return response.data?.payload;
   },
 
   async bulkExport({ commit }, request) {
-    const response = await $axios.get("/api/product/bulkExport", {
+    const response = await $axios.get("/product/bulkExport", {
       responseType: "blob",
     });
 

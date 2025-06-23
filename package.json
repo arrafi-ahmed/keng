@@ -4,7 +4,7 @@
   "scripts": {
     "in": "npm i && npm in --prefix frontend && npm in --prefix backend",
     "up": "npm update && npm up --prefix frontend && npm up --prefix backend",
-    "dev": "concurrently --names \"client,api\" \"npm run dev --prefix client\" \"npm run dev --prefix api\"",
+    "dev": "concurrently --names \"client,api\" \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
     "setup": "npm run in && npm run dev",
     "upgrade": "npm run up && npm run dev"
   },

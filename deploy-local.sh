@@ -1,53 +1,66 @@
 #!/bin/bash
 
+set -euo pipefail
+set -x
+
 SKIP_GIT=false
 
 # === Parse Flags ===
 for arg in "$@"; do
-  case $arg in
+  case "$arg" in
     --skip-git)
       SKIP_GIT=true
       shift
       ;;
+    *)
+      echo "❌ Unknown argument: $arg"
+      exit 1
+      ;;
   esac
 done
 
-ENV_FILE="./backend/.env.production"
+# --- Local Environment Files ---
+LOCAL_BACKEND_ENV="./backend/.env.production"
+LOCAL_FRONTEND_ENV="./frontend/.env.production"
 
-if [ ! -f "$ENV_FILE" ]; then
-  echo "❌ Missing backend/.env.production"
-  exit 1
-fi
+# === Validate .env Files ===
+echo "🔍 Checking for environment files..."
+[[ -f "$LOCAL_BACKEND_ENV" ]] || { echo "❌ Missing $LOCAL_BACKEND_ENV"; exit 1; }
+[[ -f "$LOCAL_FRONTEND_ENV" ]] || { echo "❌ Missing $LOCAL_FRONTEND_ENV"; exit 1; }
+echo "✅ Environment files found."
 
-echo "🔑 Loading $ENV_FILE..."
-export $(grep -v '^#' "$ENV_FILE" | xargs)
+# === Extract SERVER_IP ===
+set -a
+source "$LOCAL_BACKEND_ENV"
+set +a
+: "${SERVER_IP:?Missing SERVER_IP in backend/.env.production}"
 
-: "${SITE_USER:?Missing SITE_USER}"
-: "${SERVER_IP:?Missing SERVER_IP}"
+REMOTE="root@$SERVER_IP"
+REMOTE_DIR="/root"
+REMOTE_DEPLOY="$REMOTE_DIR/deploy-remote.sh"
+REMOTE_ENV_FRONT="$REMOTE_DIR/.env.frontend.production"
+REMOTE_ENV_BACK="$REMOTE_DIR/.env.backend.production"
 
-SERVER="root@$SERVER_IP"
-REMOTE_DIR="/root"  # This ensures upload goes to the actual SSH user's home
-
-# === 1. Git Push (optional) ===
+# === 1. Git Push ===
+echo "🚀 Git push (unless skipped)..."
 if [ "$SKIP_GIT" = false ]; then
-  echo "📤 Pushing latest code to GitHub..."
   git add .
-  git commit -m "📦 Deploy commit"
+  git commit -m "📦 Deploy commit on $(date +'%Y-%m-%d %H:%M:%S')" || echo "ℹ️ Nothing to commit"
   git push origin main
 else
-  echo "🚫 Skipping git push"
+  echo "⏭️ Skipping Git push (--skip-git)"
 fi
 
-# === 2. Upload deploy files ===
-echo "📦 Uploading deploy script and env files..."
+# === 2. Upload Files ===
+echo "📤 Uploading files to $REMOTE..."
+scp deploy-remote.sh "$REMOTE:$REMOTE_DEPLOY"
+scp "$LOCAL_FRONTEND_ENV" "$REMOTE:$REMOTE_ENV_FRONT"
+scp "$LOCAL_BACKEND_ENV" "$REMOTE:$REMOTE_ENV_BACK"
 
-# Use separate scp commands for each file if renaming,
-# or copy them all to the directory if keeping original names.
-# I'm assuming you want to rename them as you had in your original scp.
-scp deploy-remote.sh "$SERVER:$REMOTE_DIR/deploy-remote.sh"
-scp frontend/.env.production "$SERVER:$REMOTE_DIR/.env.frontend.production"
-scp backend/.env.production "$SERVER:$REMOTE_DIR/.env.backend.production"
+echo "✅ Files uploaded successfully."
 
-# === 3. Trigger deploy ===
-echo "🚀 Running remote deploy script..."
-ssh "$SERVER" "cd $REMOTE_DIR && chmod +x deploy-remote.sh && ./deploy-remote.sh"
+# === 3. Execute Remote Script ===
+echo "📡 Executing deploy on $REMOTE..."
+ssh "$REMOTE" "chmod +x $REMOTE_DEPLOY && $REMOTE_DEPLOY"
+
+echo "🎉 Deployment triggered on $REMOTE. Monitor logs there if needed."
