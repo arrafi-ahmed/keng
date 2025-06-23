@@ -199,6 +199,10 @@ if [ -f "$GLOBAL_CLONE_DIR/backend/schema-pg.sql" ]; then
   chown postgres:postgres "$GLOBAL_CLONE_DIR/backend/schema-pg.sql"
   chmod 600 "$GLOBAL_CLONE_DIR/backend/schema-pg.sql"
   sudo -u postgres psql -d "$DB_NAME" -f "$GLOBAL_CLONE_DIR/backend/schema-pg.sql"
+
+  # NEW: Ensure table-level and sequence-level privileges are granted
+  sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;"
+  sudo -u postgres psql -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;"
 fi
 
 echo -e "\n10.0 Cleaning up temporary files..."
