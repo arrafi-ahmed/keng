@@ -159,6 +159,7 @@ const getLocationFromIP = async ({ ipAddress }) => {
       query: data.query,
     };
   } catch (error) {
+    console.error("DEBUG IP-API fetch error:", error);
     console.warn("IP-API request failed:", error.message);
     return {};
   }

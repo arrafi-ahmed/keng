@@ -151,6 +151,9 @@ module.exports = {
     instances: 1,
     autorestart: true,
     watch: false,
+    out_file: "./logs/out.log",
+    error_file: "./logs/error.log",
+    log_date_format: "YYYY-MM-DD HH:mm:ss",
     env_production: {
       NODE_ENV: "production",
       PORT: "$PORT"
@@ -190,7 +193,10 @@ else
   exit 1
 fi
 
-echo -e "\n8.8 Starting backend with PM2..."
+echo -e "\n 8.8 Creating PM2 logs dir..."
+mkdir -p "$BACKEND_SITE_DIR/backend/logs"
+
+echo -e "\n8.9 Starting backend with PM2..."
 sudo -u "$BACKEND_SITE_USER" pm2 start "$BACKEND_SITE_DIR/backend/ecosystem.config.js" --env production || sudo -u "$BACKEND_SITE_USER" pm2 restart "$PROJECT_NAME-api"
 sudo -u "$BACKEND_SITE_USER" pm2 save
 
