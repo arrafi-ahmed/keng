@@ -123,6 +123,47 @@ const removeFiles = async (fileArr) => {
   return deletionResults;
 };
 
+const getLocationFromIP = async ({ ipAddress }) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(`https://ip-api.com/json/${ipAddress}`, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": `${appInfo.name}/${appInfo.version} (dev@quthentic.com)`,
+      },
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.warn("IP-API error:", response.status, response);
+      return {};
+    }
+
+    const data = await response.json();
+    return {
+      status: data.status,
+      country: data.country,
+      countryCode: data.countryCode,
+      region: data.region,
+      regionName: data.regionName,
+      city: data.city,
+      zip: data.zip,
+      latitude: data.lat,
+      longitude: data.lon,
+      timezone: data.timezone,
+      isp: data.isp,
+      org: data.org,
+      as: data.as,
+      query: data.query,
+    };
+  } catch (error) {
+    console.warn("IP-API request failed:", error.message);
+    return {};
+  }
+};
+
 const getClientIP = (req) => {
   const xForwardedFor = req.headers["x-forwarded-for"];
   if (xForwardedFor) {
@@ -181,7 +222,6 @@ const reverseGeocode = async ({ latitude, longitude }) => {
   }
 };
 
-
 const generateBase64QrCode = async (payload) => {
   const { productId, productIdentitiesId, uuid } = payload;
   if (!productId || !productIdentitiesId || !uuid) {
@@ -196,8 +236,16 @@ const generateBase64QrCode = async (payload) => {
   return qr.toDataURL(route); // return with base64 prefix
 };
 
-const generateQrCodeContent = async ({ productId, productIdentitiesId, uuid }) => {
-  const qrCodeDataUrl = await generateBase64QrCode({productId, productIdentitiesId, uuid})
+const generateQrCodeContent = async ({
+  productId,
+  productIdentitiesId,
+  uuid,
+}) => {
+  const qrCodeDataUrl = await generateBase64QrCode({
+    productId,
+    productIdentitiesId,
+    uuid,
+  });
   return qrCodeDataUrl.split(",")[1]; // return only base64 portion
 };
 
@@ -226,5 +274,6 @@ module.exports = {
   removeOtherParams,
   ifSudo,
   getClientIP,
+  getLocationFromIP,
   reverseGeocode,
 };

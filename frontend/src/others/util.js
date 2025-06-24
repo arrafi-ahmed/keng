@@ -69,9 +69,7 @@ export const getClientPublicImageUrl = (imageName) =>
   imageName ? `/img/${imageName}` : null;
 
 export const getApiPublicFileUrl = (fileName, filePrefix) =>
-  isProd
-    ? `${apiBaseUrl}/backend/${filePrefix}/${fileName}`
-    : `${apiBaseUrl}/${filePrefix}/${fileName}`;
+  `${apiBaseUrl}/${filePrefix}/${fileName}`;
 
 export const getUserImageUrl = (imageName) => {
   return imageName === "null" || !imageName
@@ -269,7 +267,6 @@ export const getUserLocation = () => {
     );
   });
 };
-
 
 export const downloadFile = async (apiEndpoint) => {
   try {

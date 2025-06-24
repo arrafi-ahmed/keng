@@ -54,7 +54,7 @@ const handleExport = async () => {
           title="Product Import/Export"
         />
         <v-card
-          class="mx-auto pa-4 pa-md-8 my-2 my-md-5"
+          class="mx-auto pa-4 pa-md-8 my-4"
           elevation="0"
           max-width="700"
           rounded="lg"
@@ -137,14 +137,14 @@ const handleExport = async () => {
     <v-card>
       <v-card-title>How to Prepare Your Import Files</v-card-title>
       <v-card-text class="text-pre-wrap">
-        <ul class="mx-3">
+        <ul class="mx-3 import-instruction">
           <li>Ensure all filenames are unique to avoid conflicts.</li>
           <li>
             <div>
               Organize your ZIP file with the following folder structure:
             </div>
-            <code>{{
-              `import.zip
+            <code>
+              <br>{{`import.zip
 ├── product-images/
 │    ├── image1.jpg
 │    ├── image2.png
@@ -200,4 +200,8 @@ const handleExport = async () => {
   </v-dialog>
 </template>
 
-<style></style>
+<style>
+.import-instruction li{
+  margin-bottom: 0.5rem;
+}
+</style>

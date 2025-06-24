@@ -152,6 +152,7 @@ const handleSubmitProductAdd = async () => {
         id: item.id,
         identityType: item.identityType,
         identityNo: item.identityNo,
+        uuid: item.uuid,
       })),
     });
     productDialog.value = !productDialog.value;

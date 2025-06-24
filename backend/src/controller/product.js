@@ -10,6 +10,7 @@ const {
   getClientIP,
   reverseGeocode,
   getFilePath,
+  getLocationFromIP,
 } = require("../helpers/util");
 const CustomError = require("../model/CustomError");
 const mime = require("mime-types");
@@ -111,24 +112,14 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      const loc = payload.newScan.location;
-      let geocodedDetails = {};
-
-      if (loc?.latitude && loc?.longitude) {
-        geocodedDetails = await reverseGeocode({
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-        });
-      }
+      const ipAddress = getClientIP(req);
+      const location = await getLocationFromIP({ ipAddress });
 
       payload.newScan = {
         ...payload.newScan,
-        ipAddress: getClientIP(req),
         scanType: "model",
-        location: {
-          ...(loc || {}),
-          ...geocodedDetails,
-        },
+        ipAddress,
+        location,
       };
 
       const savedScan = await productService.saveScan({
@@ -167,24 +158,15 @@ router.post(
       if (req.isLoggedIn) {
         payload.newScan.scannedBy = req.currentUser.id;
       }
-      const loc = payload.newScan.location;
-      let geocodedDetails = {};
 
-      if (loc?.latitude && loc?.longitude) {
-        geocodedDetails = await reverseGeocode({
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-        });
-      }
+      const ipAddress = getClientIP(req);
+      const location = await getLocationFromIP({ ipAddress });
 
       payload.newScan = {
         ...payload.newScan,
-        ipAddress: getClientIP(req),
-        scanType: "model",
-        location: {
-          ...(loc || {}),
-          ...geocodedDetails,
-        },
+        scanType: "unit",
+        ipAddress,
+        location,
       };
 
       const savedScan = await productService.saveScan({

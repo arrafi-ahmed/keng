@@ -11,7 +11,6 @@ const customCors = (req, res, next) => {
       if (urlwww) {
         allowedOrigins.push(urlwww);
       }
-      console.log(1, origin, allowedOrigins);
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -37,7 +36,6 @@ const customCors = (req, res, next) => {
     );
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     if (req.method === "OPTIONS") {
-      console.error('hit cors option');
       return res.sendStatus(204); // Respond to preflight immediately
     }
     return next();

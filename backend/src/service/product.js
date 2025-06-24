@@ -427,14 +427,14 @@ exports.getProductWIdentity = async ({
                'filename', pf.filename
                             ))
             FROM product_files pf
-            WHERE pf.product_id = p.id)  AS product_files,
+            WHERE pf.product_id = p.id)  AS files,
            (SELECT json_agg(json_build_object(
                'id', pim.id,
                'sort_order', pim.sort_order,
                'filename', pim.filename
                             ))
             FROM product_images pim
-            WHERE pim.product_id = p.id) AS product_images
+            WHERE pim.product_id = p.id) AS images
     FROM products p
     ${condProductId}
   `;
