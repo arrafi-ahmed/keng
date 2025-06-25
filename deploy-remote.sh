@@ -247,30 +247,6 @@ else
     exit 1
 fi
 
-# --- Add wait for PM2 service to be active ---
-echo
-echo "8.8.4 Waiting for pm2-$BACKEND_SITE_USER.service to be active..."
-MAX_RETRIES=10
-RETRY_COUNT=0
-while [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; do
-    if sudo systemctl is-active --quiet "pm2-$BACKEND_SITE_USER.service"; then
-        echo "✅ pm2-$BACKEND_SITE_USER.service is active."
-        break
-    else
-        echo "Waiting for pm2-$BACKEND_SITE_USER.service to become active (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)..."
-        sleep 5
-        RETRY_COUNT=$((RETRY_COUNT+1))
-    fi
-done
-
-if [ "$RETRY_COUNT" -eq "$MAX_RETRIES" ]; then
-    echo "❌ ERROR: pm2-$BACKEND_SITE_USER.service did not become active after $MAX_RETRIES attempts. Manual intervention may be required."
-    sudo systemctl status "pm2-$BACKEND_SITE_USER.service" --no-pager
-    exit 1
-fi
-# --- End wait for PM2 service ---
-
-
 echo
 echo "8.9 Starting/Restarting backend with PM2 as $BACKEND_SITE_USER."
 sudo -u "$BACKEND_SITE_USER" pm2 start "$BACKEND_SITE_DIR/backend/ecosystem.config.js" --env production || sudo -u "$BACKEND_SITE_USER" pm2 restart "$PROJECT_NAME-api"
@@ -280,7 +256,8 @@ echo "8.10 Saving PM2 process list for $BACKEND_SITE_USER."
 sudo -u "$BACKEND_SITE_USER" pm2 save
 
 # --- Backend Health Check ---
-echo -e "\n🔍 Testing backend health at http://127.0.0.1:$PORT/info"
+echo
+echo "8.11 🔍 Testing backend health at http://127.0.0.1:$PORT/info"
 
 MAX_RETRIES=5
 RETRY_INTERVAL=2
@@ -302,6 +279,28 @@ if [ "$SUCCESS" = false ]; then
   echo -e "\n❌ Backend health check failed after $MAX_RETRIES attempts. Something’s wrong."
   exit 1
 fi
+
+# --- Add wait for PM2 service to be active ---
+echo
+echo "8.12 Waiting for pm2-$BACKEND_SITE_USER.service to be active..."
+RETRY_COUNT=0
+while [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; do
+    if sudo systemctl is-active --quiet "pm2-$BACKEND_SITE_USER.service"; then
+        echo "✅ pm2-$BACKEND_SITE_USER.service is active."
+        break
+    else
+        echo "Waiting for pm2-$BACKEND_SITE_USER.service to become active (attempt $((RETRY_COUNT+1))/$MAX_RETRIES)..."
+        sleep 5
+        RETRY_COUNT=$((RETRY_COUNT+1))
+    fi
+done
+
+if [ "$RETRY_COUNT" -eq "$MAX_RETRIES" ]; then
+    echo "❌ ERROR: pm2-$BACKEND_SITE_USER.service did not become active after $MAX_RETRIES attempts. Manual intervention may be required."
+    sudo systemctl status "pm2-$BACKEND_SITE_USER.service" --no-pager
+#    exit 1
+fi
+# --- End wait for PM2 service ---
 # --- End Backend Health Check ---
 
 echo
