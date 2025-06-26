@@ -128,7 +128,7 @@ const getLocationFromIP = async ({ ipAddress }) => {
   const timeout = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const response = await fetch(`https://ip-api.com/json/${ipAddress}`, {
+    const response = await fetch(`http://ip-api.com/json/${ipAddress}`, {
       signal: controller.signal,
       headers: {
         "User-Agent": `${appInfo.name}/${appInfo.version} (dev@quthentic.com)`,

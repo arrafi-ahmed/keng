@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
-set -x
+#set -x
 
 SKIP_GIT=false
 
