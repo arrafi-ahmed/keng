@@ -40,6 +40,8 @@ BACKEND_SITE_DIR="/home/$BACKEND_SITE_USER/htdocs/$BACKEND_DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
 GLOBAL_CLONE_DIR="/tmp/$PROJECT_NAME-clone"
 
+set -e
+
 echo "🚀 Starting unified deployment for $PROJECT_NAME."
 
 echo "1.0 Ensuring base directory permissions..."
@@ -214,7 +216,7 @@ rm -rf "$GLOBAL_CLONE_DIR"
 rm -f "$ROOT_DIR/deploy-remote.sh" "$REMOTE_FRONTEND_ENV" "$REMOTE_BACKEND_ENV"
 rm -rf "$FRONTEND_SITE_DIR/frontend"
 
-echo "✅ Deployment complete! Visit: https://$FRONTEND_DOMAIN"
+echo "✅ Deployment complete! Visit: https://$FRONTEND_DOMAIN and https://$BACKEND_DOMAIN"
 
 echo "🔍 Testing backend health at http://127.0.0.1:$PORT"
 
@@ -225,11 +227,11 @@ SUCCESS=false
 
 for ((i=1; i<=MAX_RETRIES; i++)); do
   if curl --fail --silent "$HEALTHCHECK_URL" > /dev/null; then
-    echo "✅ Backend is healthy after $i attempt(s)."
+    echo -e "✅ Backend is healthy after $i attempt(s)."
     SUCCESS=true
     break
   else
-    echo "Attempt $i: Backend not yet healthy. Retrying in ${RETRY_INTERVAL}s..."
+    echo -e "Attempt $i: Backend not yet healthy. Retrying in ${RETRY_INTERVAL}s..."
     sleep $RETRY_INTERVAL
   fi
 done
