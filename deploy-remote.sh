@@ -7,7 +7,7 @@ ROOT_DIR="/root"
 REMOTE_FRONTEND_ENV="$ROOT_DIR/.env.frontend.production"
 REMOTE_BACKEND_ENV="$ROOT_DIR/.env.backend.production"
 
-echo ""🔐 Checking environment files..."
+echo "🔐 Checking environment files..."
 if [ ! -f "$REMOTE_FRONTEND_ENV" ]; then
   echo "❌ Missing frontend env file: $REMOTE_FRONTEND_ENV"
   exit 1
@@ -40,7 +40,7 @@ BACKEND_SITE_DIR="/home/$BACKEND_SITE_USER/htdocs/$BACKEND_DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
 GLOBAL_CLONE_DIR="/tmp/$PROJECT_NAME-clone"
 
-set -e
+#set -e
 
 echo "🚀 Starting unified deployment for $PROJECT_NAME."
 
@@ -227,11 +227,11 @@ SUCCESS=false
 
 for ((i=1; i<=MAX_RETRIES; i++)); do
   if curl --fail --silent "$HEALTHCHECK_URL" > /dev/null; then
-    echo -e "✅ Backend is healthy after $i attempt(s)."
+    echo "✅ Backend is healthy after $i attempt(s)."
     SUCCESS=true
     break
   else
-    echo -e "Attempt $i: Backend not yet healthy. Retrying in ${RETRY_INTERVAL}s..."
+    echo "Attempt $i: Backend not yet healthy. Retrying in ${RETRY_INTERVAL}s..."
     sleep $RETRY_INTERVAL
   fi
 done
