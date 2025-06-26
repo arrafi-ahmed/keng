@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#set -x
+set -x
 
 ### === GLOBAL CONFIGURATION === ###
 ROOT_DIR="/root"
@@ -40,7 +40,7 @@ BACKEND_SITE_DIR="/home/$BACKEND_SITE_USER/htdocs/$BACKEND_DOMAIN"
 REPO_URL="https://github.com/arrafi-ahmed/$PROJECT_NAME.git"
 GLOBAL_CLONE_DIR="/tmp/$PROJECT_NAME-clone"
 
-#set -e
+set -e
 
 echo "🚀 Starting unified deployment for $PROJECT_NAME."
 
