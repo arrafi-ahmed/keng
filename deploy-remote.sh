@@ -216,7 +216,7 @@ rm -rf "$GLOBAL_CLONE_DIR"
 rm -f "$ROOT_DIR/deploy-remote.sh" "$REMOTE_FRONTEND_ENV" "$REMOTE_BACKEND_ENV"
 rm -rf "$FRONTEND_SITE_DIR/frontend"
 
-echo "✅ Deployment complete! Visit: https://$FRONTEND_DOMAIN and https://$BACKEND_DOMAIN"
+echo "✅ Deployment complete! Visit: https://$FRONTEND_DOMAIN"
 
 echo "🔍 Testing backend health at http://127.0.0.1:$PORT"
 
