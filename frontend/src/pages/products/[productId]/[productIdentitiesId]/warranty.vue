@@ -29,7 +29,7 @@ const isFormValid = ref(true);
 const handleSubmitWarrantySave = async () => {
   await form.value.validate();
   if (!isFormValid.value) return;
-  console.log(1, newWarranty);
+
   store.dispatch("product/saveWarranty", { newWarranty }).then((res) => {
     router.push({ name: "products" });
   });

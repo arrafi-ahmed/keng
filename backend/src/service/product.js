@@ -338,7 +338,6 @@ exports.saveWarranty = async ({ payload: { newWarranty } }) => {
   } else {
     newWarranty.createdAt = new Date().toISOString();
   }
-  console.log(2, newWarranty);
   const [savedWarranty] = await sql`
     insert into product_warranties ${sql(newWarranty)} on conflict(id)
         do
