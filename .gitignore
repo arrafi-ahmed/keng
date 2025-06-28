@@ -6,6 +6,7 @@ backend/public/product-certificates/*
 backend/public/product-images/*
 backend/public/product-manuals/*
 backend/public/user-images/*
+backend/public/tmp/*
 backend/public/qr/*
 
 # allow all the folders themselves to be tracked
@@ -13,6 +14,7 @@ backend/public/qr/*
 !backend/public/product-images/.gitkeep
 !backend/public/product-manuals/.gitkeep
 !backend/public/user-images/.gitkeep
+!backend/public/tmp/.gitkeep
 !backend/public/qr/.gitkeep
 
 # env files
