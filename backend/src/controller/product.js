@@ -145,7 +145,7 @@ router.post(
           uuid: payload.uuid,
         },
       });
-      const warranty = await productService.getWarranty({
+      const warranty = await productService.getWarrantyWIdentity({
         payload: {
           productIdentitiesId: payload.newScan.productIdentitiesId,
           uuid: payload.uuid,
@@ -181,7 +181,7 @@ router.post(
 
 router.get("/getWarrantyWProduct", auth, async (req, res, next) => {
   try {
-    const warranty = await productService.getWarranty({
+    const warranty = await productService.getWarrantyWIdentity({
       payload: {
         productIdentitiesId: req.query.productIdentitiesId,
         uuid: req.query.uuid || "invalidIfNotPresent",
@@ -243,18 +243,38 @@ router.get("/downloadManual", (req, res, next) => {
   });
 });
 
-router.post("/bulkImport", auth, uploadFiles(), async (req, res, next) => {
+router.post("/bulkImportWarranty", auth, uploadFiles(), async (req, res, next) => {
   try {
-    const zipFile = req.files?.importZip?.[0];
+    const excelFile = req.files?.warrantyImportExcel?.[0];
+    if (!excelFile) return res.status(400).json({ message: "Excel file required" });
+
+    const result = await importExportService.bulkImportWarranty({
+      excelFile,
+      userId: req.currentUser.id,
+    });
+    res.json(
+      new ApiResponse(
+        `${result.insertCount} Product warranties imported successfully!`,
+        result,
+      ),
+    );
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/bulkImportProduct", auth, uploadFiles(), async (req, res, next) => {
+  try {
+    const zipFile = req.files?.productImportZip?.[0];
     if (!zipFile) return res.status(400).json({ message: "ZIP file required" });
 
-    const result = await importExportService.bulkImport({
+    const result = await importExportService.bulkImportProduct({
       zipFile,
       userId: req.currentUser.id,
     });
     res.json(
       new ApiResponse(
-        `${result.productCount} Products imported successfully!`,
+        `${result.insertCount} Products imported successfully!`,
         result,
       ),
     );

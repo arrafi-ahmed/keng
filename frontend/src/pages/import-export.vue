@@ -19,13 +19,33 @@ const { mobile } = useDisplay();
 const store = useStore();
 const router = useRouter();
 
-const instructionDialog = ref(false);
-const form = ref(null);
-const isFormValid = ref(true);
-const importZip = ref(null);
+const productImportDialog = ref(false);
+const productImportForm = ref(null);
+const isProductImportFormValid = ref(true);
+const productImportZip = ref(null);
 
-const handleImport = async () => {
-  if (!importZip.value) {
+const warrantyImportDialog = ref(false);
+const warrantyImportForm = ref(null);
+const isWarrantyImportFormValid = ref(true);
+const warrantyImportExcel = ref(null);
+
+const handleWarrantyImport = async () => {
+  if (!warrantyImportExcel.value) {
+    store.commit("addSnackbar", {
+      text: "Excel file required!",
+      color: "error",
+    });
+    return;
+  }
+  const formData = new FormData();
+  formData.append("warrantyImportExcel", warrantyImportExcel.value);
+  store.dispatch("product/bulkImportWarranty", formData).then((result) => {
+    router.push({ name: "products" });
+  });
+}
+
+const handleProductImport = async () => {
+  if (!productImportZip.value) {
     store.commit("addSnackbar", {
       text: "Zip file required!",
       color: "error",
@@ -34,8 +54,8 @@ const handleImport = async () => {
   }
 
   const formData = new FormData();
-  formData.append("importZip", importZip.value);
-  store.dispatch("product/bulkImport", formData).then((result) => {
+  formData.append("productImportZip", importZip.value);
+  store.dispatch("product/bulkImportProduct", formData).then((result) => {
     router.push({ name: "products" });
   });
 };
@@ -51,7 +71,7 @@ const handleExport = async () => {
         <page-title
           :border-b="true"
           :show-back="true"
-          title="Product Import/Export"
+          title="Import / Export"
         />
         <v-card
           class="mx-auto pa-4 pa-md-8 my-4"
@@ -60,24 +80,24 @@ const handleExport = async () => {
           rounded="lg"
         >
           <v-card-title class="text-center font-weight-bold">
-            <h2>Import</h2>
+            <h2>Product Import</h2>
           </v-card-title>
           <v-card-subtitle
             class="text-center v-icon--clickable text-decoration-underline"
-            @click="instructionDialog = !instructionDialog"
+            @click="productImportDialog = !productImportDialog"
           >
             <v-icon>mdi-information-outline</v-icon>
             Import instruction
           </v-card-subtitle>
           <v-card-text>
             <v-form
-              ref="form"
-              v-model="isFormValid"
+              ref="productImportForm"
+              v-model="isProductImportFormValid"
               fast-fail
-              @submit.prevent="handleImport"
+              @submit.prevent="handleProductImport"
             >
               <v-file-upload
-                v-model="importZip"
+                v-model="productImportZip"
                 :hide-browse="false"
                 accept=".zip"
                 class="mt-2 mt-md-4"
@@ -110,7 +130,7 @@ const handleExport = async () => {
           rounded="lg"
         >
           <v-card-title class="text-center font-weight-bold">
-            <h2>Export</h2>
+            <h2>Product Export</h2>
           </v-card-title>
           <v-card-subtitle class="text-center">
             Exports all product data including images, manuals, etc
@@ -129,22 +149,72 @@ const handleExport = async () => {
             </v-btn>
           </v-card-text>
         </v-card>
+
+        <v-card
+          class="mx-auto pa-4 pa-md-8 my-4"
+          elevation="0"
+          max-width="700"
+          rounded="lg"
+        >
+          <v-card-title class="text-center font-weight-bold">
+            <h2>Warranty Import</h2>
+          </v-card-title>
+          <v-card-subtitle
+            class="text-center v-icon--clickable text-decoration-underline"
+            @click="warrantyImportDialog = !warrantyImportDialog"
+          >
+            <v-icon>mdi-information-outline</v-icon>
+            Import instruction
+          </v-card-subtitle>
+          <v-card-text>
+            <v-form
+              ref="warrantyImportForm"
+              v-model="isWarrantyImportFormValid"
+              fast-fail
+              @submit.prevent="handleWarrantyImport"
+            >
+              <v-file-upload
+                v-model="warrantyImportExcel"
+                :hide-browse="false"
+                accept=".zip"
+                class="mt-2 mt-md-4"
+                clearable
+                density="compact"
+                show-size
+                title="Upload excel"
+                variant="compact"
+              />
+
+              <v-btn
+                :density="mobile ? 'comfortable' : 'default'"
+                block
+                class="mt-2 mt-md-4"
+                color="primary"
+                rounded="lg"
+                size="large"
+                type="submit"
+              >
+                Import Now
+              </v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
 
-  <v-dialog v-model="instructionDialog" :max-width="600">
+  <v-dialog v-model="productImportDialog" :max-width="600">
     <v-card>
       <v-card-title>How to Prepare Your Import Files</v-card-title>
       <v-card-text class="text-pre-wrap">
         <ul class="mx-3 import-instruction">
           <li>Ensure all filenames are unique to avoid conflicts.</li>
           <li>
-            <div>
+            <div class="mb-3">
               Organize your ZIP file with the following folder structure:
             </div>
             <code>
-              <br>{{`import.zip
+              {{`import.zip
 ├── product-images/
 │    ├── image1.jpg
 │    ├── image2.png
@@ -161,19 +231,19 @@ const handleExport = async () => {
             }}</code>
           </li>
           <li>
-            <div>
+            <div class="mb-3">
               In <code>products.xlsx</code>, include the following columns:
             </div>
             <code
               >name description price identities images manuals certificates
             </code>
             <v-img
-              class="mt-1"
-              :src="getClientPublicImageUrl('sample-excel.png')"
+              class="mt-3"
+              :src="getClientPublicImageUrl('excel-demo-import-product.png')"
             ></v-img>
             <div class="d-flex justify-center">
               <v-btn
-                :href="getClientPublicImageUrl('sample-excel.png')"
+                :href="getClientPublicImageUrl('excel-demo-import-product.png')"
                 target="_blank"
                 icon
                 class="mx-auto"
@@ -191,7 +261,51 @@ const handleExport = async () => {
         <v-btn
           variant="flat"
           color="secondary"
-          @click="instructionDialog = !instructionDialog"
+          @click="productImportDialog = !productImportDialog"
+        >
+          Close
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="warrantyImportDialog" :max-width="600">
+    <v-card>
+      <v-card-title>How to Prepare Your Import File</v-card-title>
+      <v-card-text class="text-pre-wrap">
+        <ul class="mx-3 import-instruction">
+          <li>
+            <div class="mb-3">
+              In excel file, include the following columns:
+            </div>
+            <code
+              >identity start end authenticity warranty_conditions void_conditions support_contact usage_advice
+            </code>
+            <v-img
+              class="mt-3"
+              :src="getClientPublicImageUrl('excel-demo-import-warranty.png')"
+            ></v-img>
+            <div class="d-flex justify-center">
+              <v-btn
+                :href="getClientPublicImageUrl('excel-demo-import-warranty.png')"
+                target="_blank"
+                icon
+                class="mx-auto"
+                variant="plain"
+                :ripple="false"
+                size="x-small"
+              >
+                (+) View full size
+              </v-btn>
+            </div>
+          </li>
+        </ul>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn
+          variant="flat"
+          color="secondary"
+          @click="warrantyImportDialog = !warrantyImportDialog"
         >
           Close
         </v-btn>

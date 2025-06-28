@@ -152,8 +152,13 @@ export const actions = {
     return response.data?.payload;
   },
 
-  async bulkImport({ commit }, request) {
-    const response = await $axios.post("/product/bulkImport", request);
+  async bulkImportWarranty({ commit }, request) {
+    const response = await $axios.post("/product/bulkImportWarranty", request);
+    return response.data?.payload;
+  },
+
+  async bulkImportProduct({ commit }, request) {
+    const response = await $axios.post("/product/bulkImportProduct", request);
     return response.data?.payload;
   },
 

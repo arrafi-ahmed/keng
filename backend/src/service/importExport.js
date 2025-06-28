@@ -11,8 +11,71 @@ const { PassThrough } = require("stream");
 const archiver = require("archiver");
 const productService = require("../service/product");
 const PUBLIC_DIR = path.join(__dirname, "..", "..", "public");
+const QR_BASE = path.join(PUBLIC_DIR, "qr");
 
-exports.bulkImport = async ({ zipFile, userId }) => {
+exports.bulkImportWarranty = async ({ excelFile, userId }) => {
+  const sheetPath = excelFile.path;
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(sheetPath);
+  const worksheet = workbook.worksheets[0];
+
+  const headers = worksheet.getRow(1).values.slice(1); // ignore first undefined
+  const rows = [];
+
+  const identitySet = new Set();
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const values = row.values.slice(1); // 1-based index
+    const rowObj = Object.fromEntries(
+      headers.map((h, i) => [h, values[i] || ""]),
+    );
+    identitySet.add(rowObj.identity);
+    rows.push(rowObj);
+  });
+
+  const fetchedIdentities = await productService.getProductIdentities({
+    payload: { ids: [...identitySet] },
+  });
+
+  const identityMap = new Map(
+    fetchedIdentities.map((i) => [i.identityNo, i.id]),
+  );
+
+  const warranties = [];
+  for (const row of rows) {
+    const pid = identityMap.get(row.identity);
+    if (!pid) continue;
+
+    const {
+      identity,
+      start,
+      end,
+      authenticity,
+      warranty_conditions,
+      void_conditions,
+      support_contact,
+      usage_advice,
+    } = row;
+    warranties.push({
+      productIdentitiesId: pid,
+      warrantyStartDate: new Date(start),
+      warrantyExpirationDate: new Date(end),
+      authenticityConfirmation: authenticity,
+      warrantyConditions: warranty_conditions,
+      voidConditions: void_conditions,
+      supportContact: support_contact,
+      usageAdvice: usage_advice,
+    });
+  }
+  let savedWarranties = [];
+  if (warranties.length) {
+    savedWarranties = await sql`
+      insert into product_warranties ${sql(warranties)} returning *`;
+  }
+  return { insertCount: savedWarranties.length };
+};
+
+exports.bulkImportProduct = async ({ zipFile, userId }) => {
   const currTime = Date.now();
   const extractTo = path.join(PUBLIC_DIR, "tmp", uuidv4());
   await fs.mkdir(extractTo, { recursive: true });
@@ -62,6 +125,7 @@ exports.bulkImport = async ({ zipFile, userId }) => {
 
   const headers = worksheet.getRow(1).values.slice(1); // ignore first undefined
   const rows = [];
+
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
     const values = row.values.slice(1); // 1-based index
@@ -87,16 +151,17 @@ exports.bulkImport = async ({ zipFile, userId }) => {
       manuals,
       certificates,
     } = row;
+
     const identityList = (identities || "")
       .split(",")
       .map((i) => i.trim())
       .filter(Boolean);
+
     if (!identityList.length) continue;
 
-    const existingRows = await sql`
-      SELECT identity_no
-      FROM product_identities
-      WHERE identity_no = ANY (${identityList})`;
+    const existingRows = await productService.getProductIdentities({
+      payload: { ids: identityList },
+    });
 
     const existingIdentityNos = new Set(existingRows.map((r) => r.identityNo));
     const newIdentityNos = identityList.filter(
@@ -219,7 +284,7 @@ exports.bulkImport = async ({ zipFile, userId }) => {
   await fs.rm(extractTo, { recursive: true, force: true });
   await fs.unlink(zipFile.path);
 
-  return { productCount: savedProducts.length };
+  return { insertCount: savedProducts.length };
 };
 
 exports.bulkExport = async ({ userId }) => {
@@ -276,10 +341,25 @@ exports.bulkExport = async ({ userId }) => {
     manuals.forEach((m) => fileCollection["product-manuals"].add(m));
     certificates.forEach((c) => fileCollection["product-certificates"].add(c));
 
-    const productQrUrl = `${VUE_BASE_URL}/products/${p.id}?uuid=${p.uuid}&scanned=1`;
-    const productQrDataUrl = await QRCode.toDataURL(productQrUrl);
-    const productQrId = workbook.addImage({
-      base64: productQrDataUrl.replace(/^data:image\/png;base64,/, ""),
+    // QR paths
+    const modelDir = path.join(QR_BASE, String(p.id));
+    const unitDir = path.join(modelDir, "unit");
+    const modelQrPath = path.join(modelDir, "model.png");
+
+    // Ensure dirs
+    fsSync.mkdirSync(unitDir, { recursive: true });
+
+    // Generate product QR if missing
+    if (!fsSync.existsSync(modelQrPath)) {
+      const productQrUrl = `${VUE_BASE_URL}/products/${p.id}?uuid=${p.uuid}&scanned=1`;
+      const productQrDataUrl = await QRCode.toDataURL(productQrUrl);
+      const buffer = Buffer.from(productQrDataUrl.split(",")[1], "base64");
+      fsSync.writeFileSync(modelQrPath, buffer);
+    }
+
+    // Embed product QR in Excel
+    const productQrImage = workbook.addImage({
+      filename: modelQrPath,
       extension: "png",
     });
 
@@ -293,7 +373,7 @@ exports.bulkExport = async ({ userId }) => {
       certificates: certificates.join(", "),
     });
 
-    sheet.addImage(productQrId, {
+    sheet.addImage(productQrImage, {
       tl: { col: 4, row: productRow.number - 1 },
       ext: { width: 100, height: 100 },
     });
@@ -301,15 +381,22 @@ exports.bulkExport = async ({ userId }) => {
 
     for (const identityRaw of p.identities || []) {
       const [serial, identityId] = identityRaw.split("::");
-      const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${p.uuid}&scanned=1`;
-      const identityQrDataUrl = await QRCode.toDataURL(identityQrUrl);
-      const identityQrId = workbook.addImage({
-        base64: identityQrDataUrl.replace(/^data:image\/png;base64,/, ""),
+      const unitQrPath = path.join(unitDir, `${identityId}.png`);
+
+      if (!fsSync.existsSync(unitQrPath)) {
+        const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${p.uuid}&scanned=1`;
+        const identityQrDataUrl = await QRCode.toDataURL(identityQrUrl);
+        const buffer = Buffer.from(identityQrDataUrl.split(",")[1], "base64");
+        fsSync.writeFileSync(unitQrPath, buffer);
+      }
+
+      const identityQrImage = workbook.addImage({
+        filename: unitQrPath,
         extension: "png",
       });
 
       const row = sheet.addRow({ serial });
-      sheet.addImage(identityQrId, {
+      sheet.addImage(identityQrImage, {
         tl: { col: 6, row: row.number - 1 },
         ext: { width: 100, height: 100 },
       });
@@ -335,6 +422,36 @@ exports.bulkExport = async ({ userId }) => {
       const filePath = path.join(PUBLIC_DIR, folder, filename);
       if (fsSync.existsSync(filePath)) {
         archive.file(filePath, { name: `${folder}/${filename}` });
+      }
+    }
+  }
+
+  // Add QR images to zip
+  if (fsSync.existsSync(QR_BASE)) {
+    const modelDirs = fsSync.readdirSync(QR_BASE);
+
+    for (const modelId of modelDirs) {
+      const modelPath = path.join(QR_BASE, modelId);
+      const modelQrPath = path.join(modelPath, "model.png");
+      const unitDirPath = path.join(modelPath, "unit");
+
+      // Add product model QR
+      if (fsSync.existsSync(modelQrPath)) {
+        archive.file(modelQrPath, {
+          name: path.join("qr", "model", `${modelId}.png`),
+        });
+      }
+
+      // Add all unit QR codes
+      if (fsSync.existsSync(unitDirPath)) {
+        const unitFiles = fsSync.readdirSync(unitDirPath);
+        for (const unitFile of unitFiles) {
+          const unitFilePath = path.join(unitDirPath, unitFile);
+          const unitId = path.parse(unitFile).name; // in case you need it later
+          archive.file(unitFilePath, {
+            name: path.join("qr", "unit", unitFile),
+          });
+        }
       }
     }
   }

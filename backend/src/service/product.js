@@ -2,6 +2,9 @@ const { sql } = require("../db");
 const { v4: uuidv4 } = require("uuid");
 const { removeFiles } = require("../helpers/util");
 const CustomError = require("../model/CustomError");
+const fs = require("fs/promises");
+const path = require("path");
+const PUBLIC_DIR = path.join(__dirname, "..", "..", "public");
 
 exports.upsertProduct = async ({ payload }) => {
   const [savedProduct] = await sql`
@@ -271,6 +274,21 @@ exports.removeProduct = async ({ payload: { productId } }) => {
   if (filesToRemove.length > 0) {
     await removeFiles(filesToRemove);
   }
+
+  // delete qr code images
+  await fs.rm(path.join(PUBLIC_DIR, "qr", String(productId)), {
+    recursive: true,
+    force: true,
+  });
+
+  return result;
+};
+
+exports.getProductIdentities = async ({ payload: { ids } }) => {
+  const result = await sql`
+    SELECT *
+    FROM product_identities
+    WHERE identity_no = ANY (${ids})`;
   return result;
 };
 
@@ -320,6 +338,7 @@ exports.saveWarranty = async ({ payload: { newWarranty } }) => {
   } else {
     newWarranty.createdAt = new Date().toISOString();
   }
+  console.log(2, newWarranty);
   const [savedWarranty] = await sql`
     insert into product_warranties ${sql(newWarranty)} on conflict(id)
         do
@@ -346,7 +365,16 @@ exports.getProductIdentity = async ({ payload: { identityNo } }) => {
   return result;
 };
 
-exports.getWarranty = async ({
+exports.getWarranty = async ({ payload: { productIdentitiesId } }) => {
+  const [result] = await sql`
+    SELECT *
+    FROM product_warranties
+    WHERE product_identities_id = ${productIdentitiesId}
+  `;
+  return result;
+};
+
+exports.getWarrantyWIdentity = async ({
   payload: { productIdentitiesId, identityNo, uuid },
 }) => {
   const condArr = [];

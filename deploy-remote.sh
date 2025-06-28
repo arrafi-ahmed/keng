@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -x
+# set dev mode
+#set -x
 
 ### === GLOBAL CONFIGURATION === ###
 ROOT_DIR="/root"

@@ -25,8 +25,13 @@ const fileConfig = {
     dir: path.join(publicDir, "product-manuals"),
     // Not compressed
   },
-  importZip: {
-    fieldname: "importZip",
+  productImportZip: {
+    fieldname: "productImportZip",
+    dir: path.join(publicDir, "tmp"),
+    // Not compressed
+  },
+  warrantyImportExcel: {
+    fieldname: "warrantyImportExcel",
     dir: path.join(publicDir, "tmp"),
     // Not compressed
   },
