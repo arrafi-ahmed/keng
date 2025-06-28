@@ -21,7 +21,7 @@ backend/public/qr/*
 **/.env.production
 
 # skip ignoring production env as its used in build on prod server
-!frontend/.env.production
+#!frontend/.env.production
 
 # Log files
 npm-debug.log*
