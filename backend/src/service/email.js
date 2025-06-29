@@ -83,7 +83,6 @@ const sendPurchaseConfirmation = async ({
   productIdentity,
   purchase,
 }) => {
-
   const params = new URLSearchParams();
   params.append("uuid", productIdentity.uuid);
   params.append("scanned", 1);

@@ -40,8 +40,8 @@ const confirmAction = () => {
       <v-card-text>{{ popupContent }}</v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn :color="color" @click="confirmAction"> Yes </v-btn>
-        <v-btn :color="color" @click="dialog = false"> No </v-btn>
+        <v-btn :color="color" @click="confirmAction"> Yes</v-btn>
+        <v-btn :color="color" @click="dialog = false"> No</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

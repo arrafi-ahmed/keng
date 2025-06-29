@@ -3,9 +3,7 @@ const { sql } = require("../db");
 const CustomError = require("../model/CustomError");
 const productService = require("./product");
 const userService = require("./user");
-const {
-  defaultCurrency,
-} = require("../helpers/util");
+const { defaultCurrency } = require("../helpers/util");
 const { sendPurchaseConfirmation } = require("./email");
 
 exports.createPaymentIntent = async ({ payload: { productId, userId } }) => {

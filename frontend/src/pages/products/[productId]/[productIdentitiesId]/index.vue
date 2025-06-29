@@ -4,7 +4,6 @@ import { useRoute } from "vue-router";
 import {
   appInfo,
   formatDate,
-  getUserLocation,
   handleRemoveQueriesNRedirect,
 } from "@/others/util.js";
 import Scan from "@/models/Scan.js";

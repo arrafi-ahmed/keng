@@ -1,6 +1,6 @@
 <script setup>
 import { useStore } from "vuex";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
   appInfo,
   getUserLocation,

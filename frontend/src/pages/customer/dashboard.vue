@@ -3,7 +3,7 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
 import DashboardCard from "@/components/DashboardCard.vue";
-import { defaultCurrency, formatDate, formatDateTime } from "@/others/util.js";
+import { defaultCurrency, formatDateTime } from "@/others/util.js";
 
 definePage({
   name: "customer-dashboard",
@@ -133,7 +133,9 @@ onMounted(async () => {
       <v-col>
         <v-sheet class="pa-4">
           <h3>Recent Purchases</h3>
-          <code class="text-disabled"><small>Click product to download QR Code</small></code>
+          <code class="text-disabled"
+            ><small>Click product to download QR Code</small></code
+          >
           <v-data-table-server
             v-model:items-per-page="itemsPerPage"
             :headers="headers"

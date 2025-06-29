@@ -75,14 +75,12 @@ export const actions = {
   },
 
   async requestResetPass({ commit }, request) {
-    const response = await $axios
-      .post("/user/requestResetPass", request)
+    const response = await $axios.post("/user/requestResetPass", request);
     return response;
   },
 
   async submitResetPass({ commit }, request) {
-    const response = await $axios
-      .post("/user/submitResetPass", request)
+    const response = await $axios.post("/user/submitResetPass", request);
     return response;
   },
 

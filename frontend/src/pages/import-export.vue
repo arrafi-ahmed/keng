@@ -42,7 +42,7 @@ const handleWarrantyImport = async () => {
   store.dispatch("product/bulkImportWarranty", formData).then((result) => {
     router.push({ name: "products" });
   });
-}
+};
 
 const handleProductImport = async () => {
   if (!productImportZip.value) {
@@ -54,7 +54,7 @@ const handleProductImport = async () => {
   }
 
   const formData = new FormData();
-  formData.append("productImportZip", importZip.value);
+  formData.append("productImportZip", productImportZip.value);
   store.dispatch("product/bulkImportProduct", formData).then((result) => {
     router.push({ name: "products" });
   });
@@ -176,7 +176,7 @@ const handleExport = async () => {
               <v-file-upload
                 v-model="warrantyImportExcel"
                 :hide-browse="false"
-                accept=".zip"
+                accept=".xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                 class="mt-2 mt-md-4"
                 clearable
                 density="compact"
@@ -214,7 +214,8 @@ const handleExport = async () => {
               Organize your ZIP file with the following folder structure:
             </div>
             <code>
-              {{`import.zip
+              {{
+                `import.zip
 ├── product-images/
 │    ├── image1.jpg
 │    ├── image2.png
@@ -228,7 +229,8 @@ const handleExport = async () => {
 │    ├── manual2.pdf
 │    └── ...
 └── products.xlsx`
-            }}</code>
+              }}</code
+            >
           </li>
           <li>
             <div class="mb-3">
@@ -238,18 +240,18 @@ const handleExport = async () => {
               >name description price identities images manuals certificates
             </code>
             <v-img
-              class="mt-3"
               :src="getClientPublicImageUrl('excel-demo-import-product.png')"
+              class="mt-3"
             ></v-img>
             <div class="d-flex justify-center">
               <v-btn
                 :href="getClientPublicImageUrl('excel-demo-import-product.png')"
-                target="_blank"
-                icon
-                class="mx-auto"
-                variant="plain"
                 :ripple="false"
+                class="mx-auto"
+                icon
                 size="x-small"
+                target="_blank"
+                variant="plain"
               >
                 (+) View full size
               </v-btn>
@@ -259,8 +261,8 @@ const handleExport = async () => {
       </v-card-text>
       <v-card-actions>
         <v-btn
-          variant="flat"
           color="secondary"
+          variant="flat"
           @click="productImportDialog = !productImportDialog"
         >
           Close
@@ -279,21 +281,24 @@ const handleExport = async () => {
               In excel file, include the following columns:
             </div>
             <code
-              >identity start end authenticity warranty_conditions void_conditions support_contact usage_advice
+              >identity start end authenticity warranty_conditions
+              void_conditions support_contact usage_advice
             </code>
             <v-img
-              class="mt-3"
               :src="getClientPublicImageUrl('excel-demo-import-warranty.png')"
+              class="mt-3"
             ></v-img>
             <div class="d-flex justify-center">
               <v-btn
-                :href="getClientPublicImageUrl('excel-demo-import-warranty.png')"
-                target="_blank"
-                icon
-                class="mx-auto"
-                variant="plain"
+                :href="
+                  getClientPublicImageUrl('excel-demo-import-warranty.png')
+                "
                 :ripple="false"
+                class="mx-auto"
+                icon
                 size="x-small"
+                target="_blank"
+                variant="plain"
               >
                 (+) View full size
               </v-btn>
@@ -303,8 +308,8 @@ const handleExport = async () => {
       </v-card-text>
       <v-card-actions>
         <v-btn
-          variant="flat"
           color="secondary"
+          variant="flat"
           @click="warrantyImportDialog = !warrantyImportDialog"
         >
           Close
@@ -315,7 +320,7 @@ const handleExport = async () => {
 </template>
 
 <style>
-.import-instruction li{
+.import-instruction li {
   margin-bottom: 0.5rem;
 }
 </style>

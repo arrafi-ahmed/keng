@@ -66,7 +66,7 @@ exports.getStats = async ({ userId }) => {
 exports.getRecentPurchases = async ({
   payload: { fetchTotalCount = false, offset = 0, limit = 20, userId },
 }) => {
-  const items = await sql`
+  const iems = await sql`
     SELECT p.id                      AS product_id,
            p.name                    AS product_name,
            pi.identity_no            AS identity_no,

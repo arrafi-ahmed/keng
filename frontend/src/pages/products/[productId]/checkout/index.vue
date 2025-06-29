@@ -154,10 +154,7 @@ onMounted(async () => {
     </v-row>
 
     <v-row justify="center">
-      <v-col
-        cols="2"
-        class="text-center"
-      >
+      <v-col class="text-center" cols="2">
         <v-img
           v-if="isCardMounted"
           :src="getClientPublicImageUrl('stripe.svg')"

@@ -64,11 +64,11 @@ const getGreetings = computed(() => {
 <template>
   <v-app-bar :height="80" :order="1" class="px-2 px-md-5" color="header" flat>
     <logo
+      :img-class="isRequiresNoAuth ? 'mx-auto' : 'mx-3'"
       :img-src="getClientPublicImageUrl('logo.png')"
       :title="false"
       :width="190"
       container-class="clickable"
-      :img-class="isRequiresNoAuth ? 'mx-auto' : 'mx-3'"
       @click="router.push(calcHome)"
     />
 
@@ -76,8 +76,8 @@ const getGreetings = computed(() => {
       <v-btn
         v-if="signedin"
         rounded="pill"
-        variant="elevated"
         size="large"
+        variant="elevated"
         @click="drawer = !drawer"
       >
         <template #prepend>

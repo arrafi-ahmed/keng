@@ -243,45 +243,57 @@ router.get("/downloadManual", (req, res, next) => {
   });
 });
 
-router.post("/bulkImportWarranty", auth, uploadFiles(), async (req, res, next) => {
-  try {
-    const excelFile = req.files?.warrantyImportExcel?.[0];
-    if (!excelFile) return res.status(400).json({ message: "Excel file required" });
+router.post(
+  "/bulkImportWarranty",
+  auth,
+  uploadFiles(),
+  async (req, res, next) => {
+    try {
+      const excelFile = req.files?.warrantyImportExcel?.[0];
+      if (!excelFile)
+        return res.status(400).json({ message: "Excel file required" });
 
-    const result = await importExportService.bulkImportWarranty({
-      excelFile,
-      userId: req.currentUser.id,
-    });
-    res.json(
-      new ApiResponse(
-        `${result.insertCount} Product warranties imported successfully!`,
-        result,
-      ),
-    );
-  } catch (err) {
-    next(err);
-  }
-});
+      const result = await importExportService.bulkImportWarranty({
+        excelFile,
+        userId: req.currentUser.id,
+      });
+      res.json(
+        new ApiResponse(
+          `${result.insertCount} Product warranties imported successfully!`,
+          result,
+        ),
+      );
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-router.post("/bulkImportProduct", auth, uploadFiles(), async (req, res, next) => {
-  try {
-    const zipFile = req.files?.productImportZip?.[0];
-    if (!zipFile) return res.status(400).json({ message: "ZIP file required" });
+router.post(
+  "/bulkImportProduct",
+  auth,
+  uploadFiles(),
+  async (req, res, next) => {
+    try {
+      const zipFile = req.files?.productImportZip?.[0];
+      if (!zipFile)
+        return res.status(400).json({ message: "ZIP file required" });
 
-    const result = await importExportService.bulkImportProduct({
-      zipFile,
-      userId: req.currentUser.id,
-    });
-    res.json(
-      new ApiResponse(
-        `${result.insertCount} Products imported successfully!`,
-        result,
-      ),
-    );
-  } catch (err) {
-    next(err);
-  }
-});
+      const result = await importExportService.bulkImportProduct({
+        zipFile,
+        userId: req.currentUser.id,
+      });
+      res.json(
+        new ApiResponse(
+          `${result.insertCount} Products imported successfully!`,
+          result,
+        ),
+      );
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 router.get("/bulkExport", auth, async (req, res, next) => {
   try {

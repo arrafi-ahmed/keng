@@ -30,16 +30,13 @@ export const actions = {
     return response.data?.payload;
   },
   async setRecentPurchases({ commit }, request) {
-    const response = await $axios.get(
-      "/customerInsights/getRecentPurchases",
-      {
-        params: {
-          fetchTotalCount: request.fetchTotalCount,
-          offset: (request.page - 1) * request.itemsPerPage,
-          limit: request.itemsPerPage,
-        },
+    const response = await $axios.get("/customerInsights/getRecentPurchases", {
+      params: {
+        fetchTotalCount: request.fetchTotalCount,
+        offset: (request.page - 1) * request.itemsPerPage,
+        limit: request.itemsPerPage,
       },
-    );
+    });
     commit("setRecentPurchases", response.data?.payload);
     return response.data?.payload;
   },
@@ -55,10 +52,7 @@ export const actions = {
     return response.data?.payload;
   },
   async saveQrCode({ commit }, request) {
-    const response = await $axios.post(
-      "/customerInsights/saveQrCode",
-      request,
-    );
+    const response = await $axios.post("/customerInsights/saveQrCode", request);
     commit("addQrCode", response.data?.payload);
     return response.data?.payload;
   },

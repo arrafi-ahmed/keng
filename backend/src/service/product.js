@@ -348,7 +348,7 @@ exports.saveWarranty = async ({ payload: { newWarranty } }) => {
       "warrantyConditions",
       "voidConditions",
       "supportContact",
-      "usageAdvice",
+      "usageAdvice,
     ])}
       returning *`;
   return { savedWarranty };
@@ -374,8 +374,8 @@ exports.getWarranty = async ({ payload: { productIdentitiesId } }) => {
 };
 
 exports.getWarrantyWIdentity = async ({
-  payload: { productIdentitiesId, identityNo, uuid },
-}) => {
+                                        payload: { productIdentitiesId, identityNo, uuid ,
+                                      }) => {
   const condArr = [];
   // @formatter:off
   const condProductIdentitiesId = productIdentitiesId
@@ -406,8 +406,8 @@ exports.getWarrantyWIdentity = async ({
 };
 
 exports.getProductWIdentity = async ({
-  payload: { productId, productIdentitiesId, uuid },
-}) => {
+                                       payload: { productId, productIdentitiesId, uuid }
+                                     }) => {
   // @formatter:off
   const condProductIdentitiesId = productIdentitiesId
     ? sql` pi.id =

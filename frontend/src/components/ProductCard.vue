@@ -15,7 +15,7 @@ const store = useStore();
 
 const { product, showBuy } = defineProps(["product", "showBuy"]);
 
-const isAvailable = computed(() => Number(product?.availableStock) > 0)
+const isAvailable = computed(() => Number(product?.availableStock) > 0);
 const isManualAvailable = computed(() => !!product.files?.[0]?.filename);
 
 const handleDownloadManual = async () => {
@@ -56,7 +56,7 @@ onMounted(async () => {
     <v-row align="start" justify="center">
       <v-col cols="12" md="6" order-md="2" sm="10">
         <h1>{{ product.name }}</h1>
-        <div :class="{ 'text-truncate-multi-line': !expanded }" ref="textRef">
+        <div ref="textRef" :class="{ 'text-truncate-multi-line': !expanded }">
           {{ product.description }}
         </div>
         <v-btn
@@ -103,13 +103,13 @@ onMounted(async () => {
           </v-btn>
         </template>
         <v-btn
+          :class="{ 'text-decoration-line-through': !isManualAvailable }"
+          :color="isManualAvailable ? 'secondary' : 'grey-lighten-1'"
+          :disabled="!isManualAvailable"
           :max-width="500"
           block
           class="mt-2"
-          :class="{ 'text-decoration-line-through': !isManualAvailable }"
-          :color="isManualAvailable ? 'secondary' : 'grey-lighten-1'"
           variant="flat"
-          :disabled="!isManualAvailable"
           @click="handleDownloadManual"
         >
           Download Manual
