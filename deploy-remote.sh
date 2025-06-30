@@ -122,15 +122,16 @@ chmod 600 "$FRONTEND_SITE_DIR/frontend/.env.production"
 echo "8.0 Backend Deployment ($BACKEND_DOMAIN) as $BACKEND_SITE_USER..."
 
 mkdir -p "$BACKEND_SITE_DIR"
-echo "8.1 Copying backend source and environment file..."
-rm -rf "$BACKEND_SITE_DIR/backend"
-cp -r "$GLOBAL_CLONE_DIR/backend" "$BACKEND_SITE_DIR/"
-cp "$REMOTE_BACKEND_ENV" "$BACKEND_SITE_DIR/backend/.env.production"
 
-echo "8.2 Preserving backend public folder if exists..."
+echo "8.1 Preserving backend public folder if exists..."
 if [ -d "$BACKEND_SITE_DIR/backend/public" ] && [ "$(ls -A $BACKEND_SITE_DIR/backend/public 2>/dev/null)" ]; then
   mv "$BACKEND_SITE_DIR/backend/public" "$BACKEND_SITE_DIR/public_backup"
 fi
+
+echo "8.2 Copying backend source and environment file..."
+rm -rf "$BACKEND_SITE_DIR/backend"
+cp -r "$GLOBAL_CLONE_DIR/backend" "$BACKEND_SITE_DIR/"
+cp "$REMOTE_BACKEND_ENV" "$BACKEND_SITE_DIR/backend/.env.production"
 
 cd "$BACKEND_SITE_DIR/backend"
 echo "8.3 Installing backend dependencies..."
