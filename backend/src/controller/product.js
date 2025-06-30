@@ -298,16 +298,12 @@ router.post(
 router.get("/bulkExport", auth, async (req, res, next) => {
     try {
         const userId = req.currentUser?.id;
-
-        const stream = await importExportService.bulkExport({userId});
-
         res.setHeader(
             "Content-Disposition",
             "attachment; filename=product-export.zip",
         );
         res.setHeader("Content-Type", "application/zip");
-
-        stream.pipe(res);
+        await importExportService.bulkExport({userId, writable: res});
     } catch (err) {
         next(err);
     }

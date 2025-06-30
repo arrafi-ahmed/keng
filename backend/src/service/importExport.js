@@ -120,7 +120,12 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     // Parse Excel using ExcelJS
     const sheetPath = path.join(extractTo, "products.xlsx");
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(sheetPath);
+
+    try {
+        await workbook.xlsx.readFile(sheetPath);
+    } catch (err) {
+        throw new Error("Invalid Zip file structure. Please follow import instructions!");
+    }
     const worksheet = workbook.worksheets[0];
 
     const headers = worksheet.getRow(1).values.slice(1); // ignore first undefined
@@ -287,7 +292,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     return {insertCount: savedProducts.length};
 };
 
-exports.bulkExport = async ({userId}) => {
+exports.bulkExport = async ({userId, writable}) => {
     const products = await sql`
         SELECT p.id,
                p.uuid,
@@ -311,9 +316,9 @@ exports.bulkExport = async ({userId}) => {
         {header: "Name", key: "name", width: 25},
         {header: "Description", key: "description", width: 40},
         {header: "Price", key: "price", width: 10},
-        {header: "Product QR", key: "product_qr", width: 20},
+        {header: "Product QR", key: "product_qr", width: 40},
         {header: "Serial", key: "serial", width: 20},
-        {header: "Identity QR", key: "identity_qr", width: 20},
+        {header: "Identity QR", key: "identity_qr", width: 40},
         {header: "Images", key: "images", width: 30},
         {header: "Manuals", key: "manuals", width: 30},
         {header: "Certificates", key: "certificates", width: 30},
@@ -349,58 +354,41 @@ exports.bulkExport = async ({userId}) => {
         // Ensure dirs
         fsSync.mkdirSync(unitDir, {recursive: true});
 
+        const productQrUrl = `${VUE_BASE_URL}/products/${p.id}?uuid=${p.uuid}&scanned=1`;
+
         // Generate product QR if missing
         if (!fsSync.existsSync(modelQrPath)) {
-            const productQrUrl = `${VUE_BASE_URL}/products/${p.id}?uuid=${p.uuid}&scanned=1`;
-            const productQrDataUrl = await QRCode.toDataURL(productQrUrl);
-            const buffer = Buffer.from(productQrDataUrl.split(",")[1], "base64");
+            const dataUrl = await QRCode.toDataURL(productQrUrl);
+            const buffer = Buffer.from(dataUrl.split(",")[1], "base64");
             fsSync.writeFileSync(modelQrPath, buffer);
         }
-
-        // Embed product QR in Excel
-        const productQrImage = workbook.addImage({
-            filename: modelQrPath,
-            extension: "png",
-        });
 
         const productRow = sheet.addRow({
             id: p.id,
             name: p.name,
             description: p.description,
             price: p.price,
+            product_qr: productQrUrl,
             images: imageList.join(", "),
             manuals: manuals.join(", "),
             certificates: certificates.join(", "),
         });
 
-        sheet.addImage(productQrImage, {
-            tl: {col: 4, row: productRow.number - 1},
-            ext: {width: 100, height: 100},
-        });
-        sheet.getRow(productRow.number).height = 80;
-
         for (const identityRaw of p.identities || []) {
             const [serial, identityId] = identityRaw.split("::");
             const unitQrPath = path.join(unitDir, `${identityId}.png`);
+            const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${p.uuid}&scanned=1`;
 
             if (!fsSync.existsSync(unitQrPath)) {
-                const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${p.uuid}&scanned=1`;
                 const identityQrDataUrl = await QRCode.toDataURL(identityQrUrl);
                 const buffer = Buffer.from(identityQrDataUrl.split(",")[1], "base64");
                 fsSync.writeFileSync(unitQrPath, buffer);
             }
 
-            const identityQrImage = workbook.addImage({
-                filename: unitQrPath,
-                extension: "png",
+            sheet.addRow({
+                serial,
+                identity_qr: identityQrUrl,
             });
-
-            const row = sheet.addRow({serial});
-            sheet.addImage(identityQrImage, {
-                tl: {col: 6, row: row.number - 1},
-                ext: {width: 100, height: 100},
-            });
-            sheet.getRow(row.number).height = 80;
         }
     }
 
@@ -411,9 +399,9 @@ exports.bulkExport = async ({userId}) => {
     const archiveStream = new PassThrough();
     const archive = archiver("zip", {zlib: {level: 9}});
 
-    archive.pipe(archiveStream);
+    archive.pipe(writable);
 
-    // Add Excel to ZIP
+    // Add Excel to ZIP (this part should still be active)
     archive.append(excelBuffer, {name: "products.xlsx"});
 
     // Add files to subfolders
@@ -447,7 +435,7 @@ exports.bulkExport = async ({userId}) => {
                 const unitFiles = fsSync.readdirSync(unitDirPath);
                 for (const unitFile of unitFiles) {
                     const unitFilePath = path.join(unitDirPath, unitFile);
-                    const unitId = path.parse(unitFile).name; // in case you need it later
+                    // const unitId = path.parse(unitFile).name; // in case you need it later
                     archive.file(unitFilePath, {
                         name: path.join("qr", "unit", unitFile),
                     });
@@ -456,7 +444,11 @@ exports.bulkExport = async ({userId}) => {
         }
     }
 
-    await archive.finalize();
-
-    return archiveStream;
+    try {
+        await archive.finalize();
+        return archiveStream;
+    } catch (error) {
+        console.error("Error during bulk export process:", error);
+        throw error;
+    }
 };
