@@ -299,13 +299,13 @@ exports.bulkExport = async ({userId, writable}) => {
                p.name,
                p.description,
                p.price,
-               COALESCE(array_agg(distinct pi.filename) FILTER(WHERE pi.filename IS NOT NULL), '{}')                        AS images,
-               COALESCE(array_agg(distinct pf.filename || '|' || pf.file_type) FILTER(WHERE pf.filename IS NOT NULL), '{}') AS files,
-               COALESCE(array_agg(distinct id.identity_no || '::' || id.id) FILTER(WHERE id.id IS NOT NULL), '{}')          AS identities
+               COALESCE(array_agg(distinct pi.filename) FILTER(WHERE pi.filename IS NOT NULL), '{}')                                      AS images,
+               COALESCE(array_agg(distinct pf.filename || '|' || pf.file_type) FILTER(WHERE pf.filename IS NOT NULL), '{}')               AS files,
+               COALESCE(array_agg(distinct pid.identity_no || '::' || pid.id || '::' || pid.uuid) FILTER(WHERE pid.id IS NOT NULL), '{}') AS identities
         FROM products p
                  LEFT JOIN product_images pi ON pi.product_id = p.id
                  LEFT JOIN product_files pf ON pf.product_id = p.id
-                 LEFT JOIN product_identities id ON id.product_id = p.id
+                 LEFT JOIN product_identities pid ON pid.product_id = p.id
         WHERE p.user_id = ${userId}
         GROUP BY p.id;`;
 
@@ -375,9 +375,9 @@ exports.bulkExport = async ({userId, writable}) => {
         });
 
         for (const identityRaw of p.identities || []) {
-            const [serial, identityId] = identityRaw.split("::");
+            const [serial, identityId, identityUuid] = identityRaw.split("::");
             const unitQrPath = path.join(unitDir, `${identityId}.png`);
-            const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${p.uuid}&scanned=1`;
+            const identityQrUrl = `${VUE_BASE_URL}/products/${p.id}/${identityId}?uuid=${identityUuid}&scanned=1`;
 
             if (!fsSync.existsSync(unitQrPath)) {
                 const identityQrDataUrl = await QRCode.toDataURL(identityQrUrl);
