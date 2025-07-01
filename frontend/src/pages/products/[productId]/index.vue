@@ -35,17 +35,17 @@ const fetchData = async () => {
     });
 
     //get scan data
-    let location;
-    try {
-      location = await getUserLocation();
-    } catch (err) {
-      console.warn("Geolocation error, proceeding without location:", err);
-      location = null; // fallback gracefully
-    }
+    // let location;
+    // try {
+    //   location = await getUserLocation();
+    // } catch (err) {
+    //   console.warn("Geolocation error, proceeding without location:", err);
+    //   location = null; // fallback gracefully
+    // }
 
     const newScan = new Scan({
       scannedAt: location?.timestamp,
-      location,
+      location: null,
       productId: productId.value,
     });
 
