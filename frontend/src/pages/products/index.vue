@@ -105,6 +105,10 @@ const goLastProduct = async () => {
   await loadProductItems();
 };
 
+const handleClickRow = (event, { item }) => {
+  router.push({name: 'product-single-landing', params: { productId: item.id }});
+};
+
 const productDialog = ref(false);
 const addProductForm = ref(null);
 const isProductFormValid = ref(true);
@@ -194,21 +198,6 @@ onMounted(async () => {
           </v-row>
         </page-title>
       </v-col>
-      <!--      <v-col cols="auto">-->
-      <!--        <div style="width: 250px">-->
-      <!--          <v-date-input-->
-      <!--            v-model="productDateRange"-->
-      <!--            append-inner-icon="mdi-calendar"-->
-      <!--            density="compact"-->
-      <!--            hide-details="auto"-->
-      <!--            label="Select Date"-->
-      <!--            multiple="range"-->
-      <!--            prepend-icon=""-->
-      <!--            variant="outlined"-->
-      <!--            @update:model-value="updateProductDateRange"-->
-      <!--          />-->
-      <!--        </div>-->
-      <!--      </v-col>-->
     </v-row>
 
     <v-row>
@@ -226,6 +215,7 @@ onMounted(async () => {
             hide-default-footer
             hide-no-data
             item-value="name"
+            @click:row="handleClickRow"
           >
             <template #item.productIdentities="{ item }">
               <div v-if="item.productIdentities?.length > 0">

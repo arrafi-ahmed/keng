@@ -257,13 +257,13 @@ exports.getProduct = async ({payload: {productId}}) => {
 
 exports.removeProduct = async ({payload: {productId}}) => {
     // @formatter:off
-  const existingProduct = await exports.getProduct({ payload: { productId } });
-  const [result] = await sql`
-    DELETE 
-    FROM products p
-    WHERE p.id = ${productId} returning *
-  `;
-  // @formatter:on
+    const existingProduct = await exports.getProduct({ payload: { productId } });
+    const [result] = await sql`
+        DELETE 
+        FROM products p
+            WHERE p.id = ${productId} returning *
+    `;
+    // @formatter:on
     let filesToRemove = [];
     if (existingProduct.productFiles?.length > 0) {
         filesToRemove = filesToRemove.concat(existingProduct.productFiles);

@@ -3,13 +3,14 @@ const path = require("path");
 const fs = require("fs/promises");
 const fsSync = require("fs");
 const unzipper = require("unzipper");
-const {generateImportedFileName, VUE_BASE_URL} = require("../helpers/util");
+const {generateImportedFileName, VUE_BASE_URL, generateFilename} = require("../helpers/util");
 const ExcelJS = require("exceljs");
 const QRCode = require("qrcode");
 const {v4: uuidv4} = require("uuid");
 const {PassThrough} = require("stream");
 const archiver = require("archiver");
 const productService = require("../service/product");
+const {getConfigByFieldname} = require("../helpers/fileFields");
 const PUBLIC_DIR = path.join(__dirname, "..", "..", "public");
 const QR_BASE = path.join(PUBLIC_DIR, "qr");
 
@@ -76,7 +77,6 @@ exports.bulkImportWarranty = async ({excelFile, userId}) => {
 };
 
 exports.bulkImportProduct = async ({zipFile, userId}) => {
-    const currTime = Date.now();
     const extractTo = path.join(PUBLIC_DIR, "tmp", uuidv4());
     await fs.mkdir(extractTo, {recursive: true});
 
@@ -85,37 +85,6 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
         .createReadStream(zipFile.path)
         .pipe(unzipper.Extract({path: extractTo}))
         .promise();
-
-    const folderPrefixMap = {
-        "product-images": "productImages",
-        "product-certificates": "productCertificates",
-        "product-manuals": "productManuals",
-    };
-
-    for (const [folderName, prefix] of Object.entries(folderPrefixMap)) {
-        const source = path.join(extractTo, folderName);
-        const target = path.join(PUBLIC_DIR, folderName);
-        try {
-            const files = await fs.readdir(source);
-            for (const file of files) {
-                const ext = path.extname(file);
-                const baseFilename = path.basename(file, ext);
-                const newFileName = generateImportedFileName({
-                    prefix,
-                    currTime,
-                    userId,
-                    baseFilename,
-                    ext,
-                });
-                await fs.copyFile(
-                    path.join(source, file),
-                    path.join(target, newFileName),
-                );
-            }
-        } catch {
-            /* folder may not exist — skip */
-        }
-    }
 
     // Parse Excel using ExcelJS
     const sheetPath = path.join(extractTo, "products.xlsx");
@@ -145,6 +114,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     const identityValues = [];
     const imageValues = [];
     const fileValues = [];
+    const filenamesMap = new Map()
 
     for (const row of rows) {
         const {
@@ -172,7 +142,10 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
         const newIdentityNos = identityList.filter(
             (id) => !existingIdentityNos.has(id),
         );
-        if (!newIdentityNos.length) continue;
+        if (!newIdentityNos.length) {
+            console.log('import skipped: ', name, ' - no new identities')
+            continue;
+        }
 
         const productUuid = uuidv4();
         productValues.push({
@@ -201,16 +174,15 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
             .map((f) => f.trim())
             .filter(Boolean)
             .forEach((f, i) => {
+                const relativeKey = `${path.join(getConfigByFieldname('productImages').foldername, f)}`;
+                const ext = path.extname(f);
+                const newFileName = generateFilename({prefix: getConfigByFieldname('productImages').fieldname, ext});
                 imageValues.push({
-                    filename: generateImportedFileName({
-                        prefix: "productImages",
-                        currTime,
-                        userId,
-                        baseFilename: f,
-                    }),
+                    filename: newFileName,
                     sortOrder: i + 1,
                     productUuid,
                 });
+                filenamesMap.set(relativeKey, newFileName);
             });
 
         (certificates || "")
@@ -218,16 +190,18 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
             .map((f) => f.trim())
             .filter(Boolean)
             .forEach((f) => {
+                const relativeKey = `${path.join(getConfigByFieldname('productCertificates').foldername, f)}`;
+                const ext = path.extname(f);
+                const newFileName = generateFilename({
+                    prefix: getConfigByFieldname('productCertificates').fieldname,
+                    ext
+                });
                 fileValues.push({
-                    filename: generateImportedFileName({
-                        prefix: "productCertificates",
-                        currTime,
-                        userId,
-                        baseFilename: f,
-                    }),
+                    filename: newFileName,
                     fileType: 10,
                     productUuid,
                 });
+                filenamesMap.set(relativeKey, newFileName);
             });
 
         (manuals || "")
@@ -235,16 +209,15 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
             .map((f) => f.trim())
             .filter(Boolean)
             .forEach((f) => {
+                const relativeKey = `${path.join(getConfigByFieldname('productManuals').foldername, f)}`;
+                const ext = path.extname(f);
+                const newFileName = generateFilename({prefix: getConfigByFieldname('productManuals').fieldname, ext});
                 fileValues.push({
-                    filename: generateImportedFileName({
-                        prefix: "productManuals",
-                        currTime,
-                        userId,
-                        baseFilename: f,
-                    }),
+                    filename: newFileName,
                     fileType: 11,
                     productUuid,
                 });
+                filenamesMap.set(relativeKey, newFileName);
             });
     }
 
@@ -252,6 +225,41 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     if (productValues.length) {
         savedProducts = await sql`
             insert into products ${sql(productValues)} returning *`;
+    } else {
+        console.log('import skipped: ', 'no new products')
+        return {insertCount: 0};
+    }
+
+    if (savedProducts.length) {
+        const folders = [
+            getConfigByFieldname('productImages').foldername,
+            getConfigByFieldname('productCertificates').foldername,
+            getConfigByFieldname('productManuals').foldername
+        ]
+
+        for (const folder of folders) {
+            const source = path.join(extractTo, folder);
+            const target = path.join(PUBLIC_DIR, folder);
+            try {
+                const files = await fs.readdir(source);
+                for (const file of files) {
+                    const relativeKey = `${path.join(folder, file)}`;
+                    const newFileName = filenamesMap.get(relativeKey);
+
+                    if (!newFileName) {
+                        console.warn(`⚠️ Skipping ${relativeKey} — no mapping found`);
+                        continue;
+                    }
+
+                    await fs.copyFile(
+                        path.join(source, file),
+                        path.join(target, newFileName)
+                    );
+                }
+            } catch (error) {
+                console.error(error)
+            }
+        }
     }
 
     const uuidToId = Object.fromEntries(savedProducts.map((p) => [p.uuid, p.id]));
