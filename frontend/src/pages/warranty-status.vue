@@ -48,15 +48,27 @@ const handleSubmitCheckWarrantyStatus = async () => {
 
 <template>
   <v-container>
-    <v-row align="center" justify="space-between">
+    <v-row
+      align="center"
+      justify="space-between"
+    >
       <v-col>
-        <page-title :border-b="true" :show-back="true" title="Check Warranty">
-        </page-title>
+        <page-title
+          :border-b="true"
+          :show-back="true"
+          title="Check Warranty"
+        />
       </v-col>
     </v-row>
 
     <v-row justify="center">
-      <v-col cols="12" lg="6" md="7" sm="8" xl="5">
+      <v-col
+        cols="12"
+        lg="6"
+        md="7"
+        sm="8"
+        xl="5"
+      >
         <v-form
           ref="form"
           v-model="isFormValid"

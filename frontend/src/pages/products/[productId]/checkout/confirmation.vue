@@ -26,10 +26,16 @@ const goHome = () => {
       max-width="500"
       rounded="lg"
     >
-      <v-icon class="mb-4" color="secondary" size="64"
-        >mdi-check-circle-outline
+      <v-icon
+        class="mb-4"
+        color="secondary"
+        size="64"
+      >
+        mdi-check-circle-outline
       </v-icon>
-      <h2 class="text-h5 text-white">Payment Processing</h2>
+      <h2 class="text-h5 text-white">
+        Payment Processing
+      </h2>
       <p class="text-body-2 text-white text-medium-emphasis mt-2">
         Thank you! Your payment is being processed. You’ll receive confirmation
         email shortly.

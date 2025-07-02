@@ -172,6 +172,8 @@ router.post(
             const savedScan = await productService.saveScan({
                 payload: {newScan: payload.newScan},
             });
+            product.files = product.files.filter((file) => file.fileType === 11);
+
             res.status(200).json(new ApiResponse(null, {product, warranty}));
         } catch (err) {
             next(err);
@@ -195,6 +197,7 @@ router.get("/getWarrantyWProduct", auth, async (req, res, next) => {
         if (!warranty?.id) {
             return res.status(200).json(new ApiResponse(null, {product}));
         }
+        product.files = product.files.filter((file) => file.fileType === 11);
 
         res.status(200).json(new ApiResponse(null, {warranty, product}));
     } catch (err) {

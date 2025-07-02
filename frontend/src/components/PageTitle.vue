@@ -1,6 +1,6 @@
 <script setup>
-import { useRouter } from "vue-router";
-import { computed } from "vue";
+import {useRouter} from "vue-router";
+import {computed} from "vue";
 
 const router = useRouter();
 const {
@@ -14,15 +14,15 @@ const {
   backRoute,
   titleCol,
 } = defineProps({
-  title: { type: String },
-  subTitle: { type: String },
-  justify: { type: String, default: "space-between" },
-  titleCol: { type: String, default: "9" },
-  customClass: { type: String },
-  showBack: { type: Boolean, default: false },
-  borderB: { type: Boolean, default: false },
-  prependAvatar: { type: String, default: null },
-  backRoute: { type: Object, default: null },
+  title: {type: String},
+  subTitle: {type: String},
+  justify: {type: String, default: "space-between"},
+  titleCol: {type: Object, default: () => ({cols: 9, sm: 9, md: 9, lg: 9, xl: 9})},
+  customClass: {type: String},
+  showBack: {type: Boolean, default: false},
+  borderB: {type: Boolean, default: false},
+  prependAvatar: {type: String, default: null},
+  backRoute: {type: Object, default: null},
 });
 const calcShowBack = computed(() => {
   return showBack || (backRoute && !showBack);
@@ -38,8 +38,20 @@ const handleBackClick = () => {
 </script>
 
 <template>
-  <v-row :class="customClass" :justify="justify" align="center" no-gutters>
-    <v-col :cols="titleCol" class="d-flex align-center">
+  <v-row
+    :class="customClass"
+    :justify="justify"
+    align="center"
+    no-gutters
+  >
+    <v-col
+      :cols="titleCol.cols"
+      :sm="titleCol.sm"
+      :md="titleCol.md"
+      :lg="titleCol.lg"
+      :xl="titleCol.xl"
+      class="d-flex align-center"
+    >
       <v-btn
         v-if="calcShowBack"
         class="mr-1"
@@ -58,7 +70,10 @@ const handleBackClick = () => {
           rounded
         />
         <div>
-          <div v-if="subTitle" class="text-overline">
+          <div
+            v-if="subTitle"
+            class="text-overline"
+          >
             {{ subTitle }}
           </div>
           <h2 v-if="title">

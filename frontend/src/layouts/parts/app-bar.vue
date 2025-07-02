@@ -1,15 +1,15 @@
 <script setup>
 import Logo from "@/components/Logo.vue";
-import { useRouter } from "vue-router";
-import { useStore } from "vuex";
-import { computed, ref } from "vue";
-import { getClientPublicImageUrl, getToLink } from "@/others/util";
+import {useRouter} from "vue-router";
+import {useStore} from "vuex";
+import {computed, ref} from "vue";
+import {getClientPublicImageUrl, getToLink} from "@/others/util";
 import UserAvatar from "@/components/UserAvatar.vue";
-import { useDisplay } from "vuetify";
+import {useDisplay} from "vuetify";
 
 const store = useStore();
 const router = useRouter();
-const { xs } = useDisplay();
+const {smAndUp} = useDisplay();
 
 const signedin = computed(() => store.getters["user/signedin"]);
 const currentUser = computed(() => store.getters["user/getCurrentUser"]);
@@ -19,7 +19,7 @@ const isAdmin = computed(() => store.getters["user/isAdmin"]);
 const isCustomer = computed(() => store.getters["user/isCustomer"]);
 
 const menuItemsAdmin = [
-  { title: "Products", to: { name: "products" } },
+  {title: "Products", to: {name: "products"}},
   {
     title: "Import/Export",
     to: {
@@ -29,7 +29,7 @@ const menuItemsAdmin = [
 ];
 
 const menuItemsCustomer = [
-  { title: "QR Codes", to: { name: "qr-code-listing" } },
+  {title: "QR Codes", to: {name: "qr-code-listing"}},
   {
     title: "Warranty Status",
     to: {
@@ -42,7 +42,7 @@ const isRequiresNoAuth = computed(() =>
 );
 
 const menuItems = computed(() => {
-  let items = [{ title: "Home", to: calcHome.value }];
+  let items = [{title: "Home", to: calcHome.value}];
   if (isAdmin.value) {
     items = items.concat(menuItemsAdmin);
   }
@@ -62,12 +62,18 @@ const getGreetings = computed(() => {
 </script>
 
 <template>
-  <v-app-bar :height="80" :order="1" class="px-2 px-md-5" color="header" flat>
+  <v-app-bar
+    :height="80"
+    :order="1"
+    class="px-2 px-md-5"
+    color="header"
+    flat
+  >
     <logo
       :img-class="isRequiresNoAuth ? 'mx-auto' : 'mx-3'"
       :img-src="getClientPublicImageUrl('logo.png')"
       :title="false"
-      :width="190"
+      :width="smAndUp ? 190: 150"
       container-class="clickable"
       @click="router.push(calcHome)"
     />
@@ -76,17 +82,25 @@ const getGreetings = computed(() => {
       <v-btn
         v-if="signedin"
         rounded="pill"
-        size="large"
+        :size="smAndUp ? 'large' : 'default'"
         variant="elevated"
         @click="drawer = !drawer"
       >
         <template #prepend>
           <v-avatar :size="25">
-            <v-icon :size="25"> mdi-account-circle</v-icon>
+            <v-icon :size="25">
+              mdi-account-circle
+            </v-icon>
           </v-avatar>
         </template>
-        <template #default>
-          <span class="text-capitalize" style="font-size: 0.8rem">{{
+        <template
+          v-if="smAndUp"
+          #default
+        >
+          <span
+            class="text-capitalize"
+            style="font-size: 0.8rem"
+          >{{
             currentUser.name ? currentUser.name.split(" ")[0] : ""
           }}</span>
         </template>
@@ -103,7 +117,10 @@ const getGreetings = computed(() => {
     location="end"
     temporary
   >
-    <v-list density="compact" nav>
+    <v-list
+      density="compact"
+      nav
+    >
       <v-list-item>
         <div class="d-flex justify-start align-center">
           <user-avatar

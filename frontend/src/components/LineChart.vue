@@ -34,5 +34,9 @@ defineProps({
 </script>
 
 <template>
-  <Line :data="chartData" :height="height" :options="chartOptions" />
+  <Line
+    :data="chartData"
+    :height="height"
+    :options="chartOptions"
+  />
 </template>

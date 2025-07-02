@@ -378,29 +378,29 @@ exports.getWarrantyWIdentity = async ({
                                       }) => {
     const condArr = [];
     // @formatter:off
-  const condProductIdentitiesId = productIdentitiesId
-    ? condArr.push(sql`pi.id = ${productIdentitiesId}`)
-    : null;
-  const condIdentityNo = identityNo
-    ? condArr.push(sql`pi.identity_no = ${identityNo}`)
-    : null;
-  const condUuid = uuid ? condArr.push(sql`pi.uuid = ${uuid}`) : null;
+      const condProductIdentitiesId = productIdentitiesId
+        ? condArr.push(sql`pi.id = ${productIdentitiesId}`)
+        : null;
+      const condIdentityNo = identityNo
+        ? condArr.push(sql`pi.identity_no = ${identityNo}`)
+        : null;
+      const condUuid = uuid ? condArr.push(sql`pi.uuid = ${uuid}`) : null;
 
-  let cond = sql``;
-  if (condArr.length > 0) {
-    cond = sql` WHERE ${condArr[0]}`;
-    for (let i = 1; i < condArr.length; i++) {
-      cond = sql` ${cond} AND ${condArr[i]}`;
-    }
-  }
+      let cond = sql``;
+      if (condArr.length > 0) {
+        cond = sql` WHERE ${condArr[0]}`;
+        for (let i = 1; i < condArr.length; i++) {
+          cond = sql` ${cond} AND ${condArr[i]}`;
+        }
+      }
 
-  const [result] = await sql`
-    SELECT *
-            FROM product_warranties pw join product_identities pi 
-              on pw.product_identities_id = pi.id
-            ${cond}
-  `;
-  // @formatter:on
+      const [result] = await sql`
+        SELECT *
+                FROM product_warranties pw join product_identities pi 
+                  on pw.product_identities_id = pi.id
+                ${cond}
+      `;
+      // @formatter:on
 
     return result;
 };

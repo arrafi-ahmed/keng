@@ -60,8 +60,16 @@ const handleSubmitResetPassword = async () => {
 
 <template>
   <v-container class="fill-height">
-    <v-row align="center" justify="center">
-      <v-col :cols="12" :lg="6" :md="7" :sm="8">
+    <v-row
+      align="center"
+      justify="center"
+    >
+      <v-col
+        :cols="12"
+        :lg="6"
+        :md="7"
+        :sm="8"
+      >
         <v-card
           class="mx-auto pa-4 pa-md-8 my-2 my-md-5"
           elevation="0"
@@ -72,7 +80,9 @@ const handleSubmitResetPassword = async () => {
             <h1>Login</h1>
           </v-card-title>
           <v-card-subtitle class="text-center">
-            <h2 class="font-weight-regular">Hi, Welcome back 👋</h2>
+            <h2 class="font-weight-regular">
+              Hi, Welcome back 👋
+            </h2>
           </v-card-subtitle>
           <v-card-text>
             <v-form
@@ -160,7 +170,10 @@ const handleSubmitResetPassword = async () => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="dialog" :width="450">
+  <v-dialog
+    v-model="dialog"
+    :width="450"
+  >
     <v-card class="pa-5">
       <v-card-title class="text-center">
         <h2>Forgot Password?</h2>

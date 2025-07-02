@@ -4,7 +4,7 @@ const qr = require("qrcode");
 const {fileConfig} = require("./fileFields");
 const {API_BASE_URL, VUE_BASE_URL, ANDROID_BASE_URL, LOCATIONIQ_API_KEY} =
     process.env;
-const appInfo = {name: "Quthentic", version: 1.0};
+const appInfo = {name: "Quthentic", version: 1.1};
 
 const excludedSecurityURLs = [
     "/product/getPublicProductNScan",

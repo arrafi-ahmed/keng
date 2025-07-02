@@ -37,10 +37,16 @@ defineProps({
           <v-list-item-title>
             {{ file.filename }}
           </v-list-item-title>
-          <v-list-item-subtitle v-if="toRemove.includes(file)" class="text-red">
+          <v-list-item-subtitle
+            v-if="toRemove.includes(file)"
+            class="text-red"
+          >
             Pending deletion
           </v-list-item-subtitle>
-          <v-list-item-subtitle v-else class="text-success">
+          <v-list-item-subtitle
+            v-else
+            class="text-success"
+          >
             Uploaded
           </v-list-item-subtitle>
           <template #prepend>

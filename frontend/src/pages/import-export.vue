@@ -66,7 +66,10 @@ const handleExport = async () => {
 
 <template>
   <v-container>
-    <v-row align="center" justify="center">
+    <v-row
+      align="center"
+      justify="center"
+    >
       <v-col>
         <page-title
           :border-b="true"
@@ -203,7 +206,10 @@ const handleExport = async () => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="productImportDialog" :max-width="600">
+  <v-dialog
+    v-model="productImportDialog"
+    :max-width="600"
+  >
     <v-card>
       <v-card-title>How to Prepare Your Import Files</v-card-title>
       <v-card-text class="text-pre-wrap">
@@ -229,20 +235,18 @@ const handleExport = async () => {
 │    ├── manual2.pdf
 │    └── ...
 └── products.xlsx`
-              }}</code
-            >
+              }}</code>
           </li>
           <li>
             <div class="mb-3">
               In <code>products.xlsx</code>, include the following columns:
             </div>
-            <code
-              >name description price identities images manuals certificates
+            <code>name description price identities images manuals certificates
             </code>
             <v-img
               :src="getClientPublicImageUrl('excel-demo-import-product.png')"
               class="mt-3"
-            ></v-img>
+            />
             <div class="d-flex justify-center">
               <v-btn
                 :href="getClientPublicImageUrl('excel-demo-import-product.png')"
@@ -271,7 +275,10 @@ const handleExport = async () => {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="warrantyImportDialog" :max-width="600">
+  <v-dialog
+    v-model="warrantyImportDialog"
+    :max-width="600"
+  >
     <v-card>
       <v-card-title>How to Prepare Your Import File</v-card-title>
       <v-card-text class="text-pre-wrap">
@@ -280,14 +287,13 @@ const handleExport = async () => {
             <div class="mb-3">
               In excel file, include the following columns:
             </div>
-            <code
-              >identity start end authenticity warranty_conditions
+            <code>identity start end authenticity warranty_conditions
               void_conditions support_contact usage_advice
             </code>
             <v-img
               :src="getClientPublicImageUrl('excel-demo-import-warranty.png')"
               class="mt-3"
-            ></v-img>
+            />
             <div class="d-flex justify-center">
               <v-btn
                 :href="

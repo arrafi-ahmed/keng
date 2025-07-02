@@ -52,11 +52,27 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-sheet v-if="product?.id" :elevation="3" class="px-3 mt-4 mt-md-6" rounded>
-    <v-row align="start" justify="center">
-      <v-col cols="12" md="6" order-md="2" sm="10">
+  <v-sheet
+    v-if="product?.id"
+    :elevation="3"
+    class="px-3 mt-4 mt-md-6"
+    rounded
+  >
+    <v-row
+      align="start"
+      justify="center"
+    >
+      <v-col
+        cols="12"
+        md="6"
+        order-md="2"
+        sm="10"
+      >
         <h1>{{ product.name }}</h1>
-        <div ref="textRef" :class="{ 'text-truncate-multi-line': !expanded }">
+        <div
+          ref="textRef"
+          :class="{ 'text-truncate-multi-line': !expanded }"
+        >
           {{ product.description }}
         </div>
         <v-btn
@@ -114,9 +130,15 @@ onMounted(async () => {
         >
           Download Manual
         </v-btn>
-        <div v-if="product.images?.length" class="mt-2 d-none d-md-block">
+        <div
+          v-if="product.images?.length"
+          class="mt-2 d-none d-md-block"
+        >
           <div>Product Images</div>
-          <v-slide-group class="py-4" show-arrows>
+          <v-slide-group
+            class="py-4"
+            show-arrows
+          >
             <v-slide-group-item
               v-for="(image, index) in product.images"
               :key="index"
@@ -139,7 +161,12 @@ onMounted(async () => {
           </v-slide-group>
         </div>
       </v-col>
-      <v-col cols="12" md="5" order-md="1" sm="10">
+      <v-col
+        cols="12"
+        md="5"
+        order-md="1"
+        sm="10"
+      >
         <v-carousel
           v-model="imageCarousel"
           :show-arrows="smAndDown === true"

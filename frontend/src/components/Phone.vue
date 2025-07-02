@@ -54,7 +54,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-row class="phone" no-gutters>
+  <v-row
+    class="phone"
+    no-gutters
+  >
     <v-col cols="auto">
       <v-select
         v-model="code"
@@ -79,14 +82,20 @@ onMounted(() => {
             <v-col cols="auto">
               <span>{{ selectedCountry.flag }}</span>
             </v-col>
-            <v-col class="flex-grow-1 ml-2" cols="auto">
+            <v-col
+              class="flex-grow-1 ml-2"
+              cols="auto"
+            >
               <span>{{ selectedCountry.dialCode }}</span>
             </v-col>
           </v-row>
         </template>
       </v-select>
     </v-col>
-    <v-col class="flex-grow-1" cols="auto">
+    <v-col
+      class="flex-grow-1"
+      cols="auto"
+    >
       <v-text-field
         v-model="phone"
         :class="['mt-2 mt-md-4', customClass]"
@@ -101,7 +110,10 @@ onMounted(() => {
       >
         <template #label>
           <span>{{ inputItem.text }}</span>
-          <span v-if="inputItem.required" class="text-error"> *</span>
+          <span
+            v-if="inputItem.required"
+            class="text-error"
+          > *</span>
         </template>
       </v-text-field>
     </v-col>

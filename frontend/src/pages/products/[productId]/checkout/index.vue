@@ -122,22 +122,42 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title :border-b="true" :show-back="true" title="Checkout" />
+        <page-title
+          :border-b="true"
+          :show-back="true"
+          title="Checkout"
+        />
       </v-col>
     </v-row>
 
-    <v-row align="center" justify="center">
-      <v-col cols="12" md="8" sm="10">
-        <v-card v-if="fetchedProduct.id" :max-width="600" class="mx-auto" tile>
+    <v-row
+      align="center"
+      justify="center"
+    >
+      <v-col
+        cols="12"
+        md="8"
+        sm="10"
+      >
+        <v-card
+          v-if="fetchedProduct.id"
+          :max-width="600"
+          class="mx-auto"
+          tile
+        >
           <v-card-title>{{ fetchedProduct.name }}</v-card-title>
           <v-card-subtitle>{{ fetchedProduct.description }}</v-card-subtitle>
           <v-card-text>
             <h3>{{ defaultCurrency.symbol }} {{ fetchedProduct.price }}</h3>
           </v-card-text>
         </v-card>
-        <v-card :max-width="600" class="mx-auto" tile>
+        <v-card
+          :max-width="600"
+          class="mx-auto"
+          tile
+        >
           <v-card-text>
-            <div ref="cardElement"></div>
+            <div ref="cardElement" />
           </v-card-text>
           <v-card-actions>
             <v-btn
@@ -146,7 +166,8 @@ onMounted(async () => {
               color="primary"
               variant="flat"
               @click="pay"
-              >Pay Now
+            >
+              Pay Now
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -154,7 +175,12 @@ onMounted(async () => {
     </v-row>
 
     <v-row justify="center">
-      <v-col class="text-center" cols="5" sm="3" md="2">
+      <v-col
+        class="text-center"
+        cols="5"
+        sm="3"
+        md="2"
+      >
         <v-img
           v-if="isCardMounted"
           :src="getClientPublicImageUrl('stripe.svg')"

@@ -49,7 +49,10 @@ onMounted(async () => {
 
 <template>
   <v-container>
-    <v-row align="center" justify="space-between">
+    <v-row
+      align="center"
+      justify="space-between"
+    >
       <v-col>
         <page-title
           :border-b="true"

@@ -38,12 +38,22 @@ const qrOptions = {
 
 <template>
   <v-container>
-    <v-row align="center" justify="space-between">
+    <v-row
+      align="center"
+      justify="space-between"
+    >
       <v-col>
-        <page-title :border-b="true" :show-back="true" title="Unit QR Code" />
+        <page-title
+          :border-b="true"
+          :show-back="true"
+          title="Unit QR Code"
+        />
       </v-col>
     </v-row>
-    <v-row align="center" justify="center">
+    <v-row
+      align="center"
+      justify="center"
+    >
       <v-col cols="auto mt-5">
         <QRCodeVue3
           v-if="productIdentitiesId && uuid"
@@ -56,7 +66,12 @@ const qrOptions = {
           :width="250"
           download-button="v-btn v-btn--block bg-primary v-btn--density-default v-btn--variant-flat mt-2"
         />
-        <v-alert v-else border="start" closable density="compact">
+        <v-alert
+          v-else
+          border="start"
+          closable
+          density="compact"
+        >
           No data available!
         </v-alert>
       </v-col>

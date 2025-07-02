@@ -88,13 +88,24 @@ const handleSubmitAddQrCode = async () => {
 
 <template>
   <v-container>
-    <v-row align="center" justify="space-between">
+    <v-row
+      align="center"
+      justify="space-between"
+    >
       <v-col>
-        <page-title :border-b="true" :show-back="true" title="QR Codes">
+        <page-title
+          :border-b="true"
+          :show-back="true"
+          title="QR Codes"
+        >
           <v-row align="center">
             <v-menu>
               <template #activator="{ props }">
-                <v-btn icon="mdi-dots-vertical" v-bind="props" variant="text" />
+                <v-btn
+                  icon="mdi-dots-vertical"
+                  v-bind="props"
+                  variant="text"
+                />
               </template>
               <v-list density="compact">
                 <v-list-item
@@ -133,7 +144,10 @@ const handleSubmitAddQrCode = async () => {
     </v-row>
   </v-container>
 
-  <v-dialog v-model="addQrDialog" :width="450">
+  <v-dialog
+    v-model="addQrDialog"
+    :width="450"
+  >
     <v-card class="pa-5">
       <v-form
         ref="addQrForm"
@@ -169,7 +183,7 @@ const handleSubmitAddQrCode = async () => {
           />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn
             :density="xs ? 'comfortable' : 'default'"
             class="mx-auto mt-2 mt-md-4"
@@ -197,14 +211,20 @@ const handleSubmitAddQrCode = async () => {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="viewQrDialog" :width="450">
+  <v-dialog
+    v-model="viewQrDialog"
+    :width="450"
+  >
     <v-card class="pa-5">
       <v-card-title class="text-center">
         <h2>View QR Code</h2>
         <h4>{{ selectedQrCode.title }}</h4>
       </v-card-title>
       <v-card-text>
-        <v-row align="center" justify="center">
+        <v-row
+          align="center"
+          justify="center"
+        >
           <v-col cols="auto">
             <QRCodeVue3
               :corners-square-options="qrOptions"
@@ -220,7 +240,7 @@ const handleSubmitAddQrCode = async () => {
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn
           :density="xs ? 'comfortable' : 'default'"
           class="mx-auto mt-2 mt-md-4"

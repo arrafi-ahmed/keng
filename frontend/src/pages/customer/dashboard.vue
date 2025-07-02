@@ -90,42 +90,45 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title border-b title="Welcome to Dashboard"></page-title>
+        <page-title
+          border-b
+          title="Welcome to Dashboard"
+        />
       </v-col>
     </v-row>
 
     <v-row>
       <v-col>
         <dashboard-card
-          :iconSize="30"
+          :icon-size="30"
           :value="`${defaultCurrency.symbol}${stats?.totalPurchase || 0}`"
           icon="mdi-cash"
           title="TOTAL PURCHASE"
-        ></dashboard-card>
+        />
       </v-col>
       <v-col>
         <dashboard-card
-          :iconSize="30"
+          :icon-size="30"
           :value="stats?.activeWarranties"
           icon="mdi-shield"
           title="ACTIVE WARRANTIES"
-        ></dashboard-card>
+        />
       </v-col>
       <v-col>
         <dashboard-card
-          :iconSize="30"
+          :icon-size="30"
           :value="stats?.totalQr"
           icon="mdi-qrcode"
           title="QR CODES CREATED"
-        ></dashboard-card>
+        />
       </v-col>
       <v-col>
         <dashboard-card
-          :iconSize="30"
+          :icon-size="30"
           :value="stats?.totalScans"
           icon="mdi-select-all"
           title="TOTAL SCANS"
-        ></dashboard-card>
+        />
       </v-col>
     </v-row>
 
@@ -133,9 +136,7 @@ onMounted(async () => {
       <v-col>
         <v-sheet class="pa-4">
           <h3>Recent Purchases</h3>
-          <code class="text-disabled"
-            ><small>Click product to download QR Code</small></code
-          >
+          <code class="text-disabled"><small>Click product to download QR Code</small></code>
           <v-data-table-server
             v-model:items-per-page="itemsPerPage"
             :headers="headers"
@@ -153,13 +154,21 @@ onMounted(async () => {
               {{ defaultCurrency.symbol }}{{ item.purchasedPrice }}
             </template>
             <template #item.warrantyStatus="{ item }">
-              <div v-if="item.warrantyStatus === 0" class="text-error">
+              <div
+                v-if="item.warrantyStatus === 0"
+                class="text-error"
+              >
                 Expired
               </div>
-              <div v-else-if="item.warrantyStatus === 1" class="text-success">
+              <div
+                v-else-if="item.warrantyStatus === 1"
+                class="text-success"
+              >
                 Active
               </div>
-              <div v-else>Not Available</div>
+              <div v-else>
+                Not Available
+              </div>
             </template>
           </v-data-table-server>
         </v-sheet>

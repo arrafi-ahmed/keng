@@ -61,13 +61,19 @@ onMounted(async () => {
 
 <template>
   <v-container class="fill-height">
-    <v-row align="center" justify="center">
-      <v-col cols="12" lg="8">
+    <v-row
+      align="center"
+      justify="center"
+    >
+      <v-col
+        cols="12"
+        lg="8"
+      >
         <product-card
           v-if="product.id"
           :product="product"
-          :showBuy="true"
-        ></product-card>
+          :show-buy="true"
+        />
         <no-items v-else />
       </v-col>
     </v-row>

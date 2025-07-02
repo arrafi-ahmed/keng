@@ -1,6 +1,6 @@
 <script setup>
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import {useStore} from "vuex";
+import {useRouter} from "vue-router";
 import PageTitle from "@/components/PageTitle.vue";
 import BarChart from "@/components/BarChart.vue";
 import NoItems from "@/components/NoItems.vue";
@@ -11,7 +11,8 @@ import {
   getCommonDatasetProps,
   getLineChartOptions,
 } from "@/others/chartConfig.js";
-import { useTheme } from "vuetify/framework";
+import {useTheme} from "vuetify/framework";
+import {useDisplay} from "vuetify";
 
 definePage({
   name: "admin-dashboard",
@@ -22,6 +23,7 @@ definePage({
 });
 const store = useStore();
 const router = useRouter();
+const {xs} = useDisplay();
 
 const totalScanCount = computed(() => store.state.scanAnalytics.totalScanCount);
 const monthlyScanCount = computed(
@@ -40,9 +42,9 @@ const scanByCityCount = computed(() =>
 router.push(store.getters["user/calcHome"]);
 
 const types = ref([
-  { title: "Total", value: 0 },
-  { title: "Model", value: 1 },
-  { title: "Unit", value: 2 },
+  {title: "Total", value: 0},
+  {title: "Model", value: 1},
+  {title: "Unit", value: 2},
 ]);
 const selectedTypeIndex = ref(null);
 
@@ -56,7 +58,7 @@ const commonDatasetProps = getCommonDatasetProps();
 const monthlyScanChartSrc = computed(() => {
   // Check if rawMonthlyScans.value is available and is an array
   if (!monthlyScanCount.value || !Array.isArray(monthlyScanCount.value)) {
-    return { labels: [], datasets: [] }; // Return empty data if not ready
+    return {labels: [], datasets: []}; // Return empty data if not ready
   }
 
   // Directly map the data returned by the backend
@@ -96,7 +98,7 @@ const monthlyScanChartSrc = computed(() => {
 const dailyScanChartSrc = computed(() => {
   // Check if rawMonthlyScans.value is available and is an array
   if (!dailyScanCount.value || !Array.isArray(dailyScanCount.value)) {
-    return { labels: [], datasets: [] }; // Return empty data if not ready
+    return {labels: [], datasets: []}; // Return empty data if not ready
   }
 
   // Directly map the data returned by the backend
@@ -136,7 +138,7 @@ const dailyScanChartSrc = computed(() => {
 const scanByCountrySrc = computed(() => {
   // Check if rawMonthlyScans.value is available and is an array
   if (!scanByCountryCount.value || !Array.isArray(scanByCountryCount.value)) {
-    return { labels: [], datasets: [] }; // Return empty data if not ready
+    return {labels: [], datasets: []}; // Return empty data if not ready
   }
 
   // Directly map the data returned by the backend
@@ -180,7 +182,7 @@ const scanByCountrySrc = computed(() => {
 const scanByCitySrc = computed(() => {
   // Check if rawMonthlyScans.value is available and is an array
   if (!scanByCityCount.value || !Array.isArray(scanByCityCount.value)) {
-    return { labels: [], datasets: [] }; // Return empty data if not ready
+    return {labels: [], datasets: []}; // Return empty data if not ready
   }
 
   // Directly map the data returned by the backend
@@ -259,19 +261,28 @@ onMounted(async () => {
   <v-container>
     <v-row>
       <v-col>
-        <page-title border-b title="Welcome to Dashboard">
-          <v-row align="center">
-            <v-select
-              v-model="selectedTypeIndex"
-              :items="types"
-              class="mb-2"
-              density="compact"
-              hide-details
-              items-title="title"
-              items-value="value"
-              rounded
-              variant="solo-filled"
-            ></v-select>
+        <page-title
+          :title-col="{cols:7, sm:9, md:9, lg:9, xl:9}"
+          border-b
+          title="Welcome to Dashboard"
+        >
+          <v-row
+            align="center"
+          >
+            <v-col cols="12">
+              <v-select
+                v-model="selectedTypeIndex"
+                :items="types"
+                class="mb-2"
+                :max-width="xs ? 105 : 150"
+                density="compact"
+                hide-details
+                items-title="title"
+                items-value="value"
+                rounded
+                variant="solo-filled"
+              />
+            </v-col>
           </v-row>
         </page-title>
       </v-col>
@@ -280,35 +291,40 @@ onMounted(async () => {
     <v-row>
       <v-col>
         <dashboard-card
-          :iconSize="40"
+          :icon-size="40"
           :value="totalScanCount?.total"
           icon="mdi-cube-outline"
           title="TOTAL SCANS"
-        ></dashboard-card>
+        />
       </v-col>
       <v-col>
         <dashboard-card
-          :iconSize="40"
+          :icon-size="40"
           :value="totalScanCount?.model"
           icon="mdi-tag"
           title="MODEL SCANS"
-        ></dashboard-card>
+        />
       </v-col>
       <v-col>
         <dashboard-card
-          :iconSize="40"
+          :icon-size="40"
           :value="totalScanCount?.unit"
           icon="mdi-select-all"
           title="UNIT SCANS"
-        ></dashboard-card>
+        />
       </v-col>
     </v-row>
     <v-row>
       <v-col :cols="12">
-        <v-sheet class="pa-3" rounded="lg">
+        <v-sheet
+          class="pa-3"
+          rounded="lg"
+        >
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Scans Over Time</h3>
+              <h3 class="font-weight-medium">
+                Scans Over Time
+              </h3>
             </div>
           </div>
           <line-chart
@@ -324,10 +340,15 @@ onMounted(async () => {
 
     <v-row>
       <v-col :cols="12">
-        <v-sheet class="pa-3" rounded="lg">
+        <v-sheet
+          class="pa-3"
+          rounded="lg"
+        >
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Daily Scan Count</h3>
+              <h3 class="font-weight-medium">
+                Daily Scan Count
+              </h3>
             </div>
           </div>
           <bar-chart
@@ -343,10 +364,15 @@ onMounted(async () => {
 
     <v-row>
       <v-col :cols="12">
-        <v-sheet class="pa-3" rounded="lg">
+        <v-sheet
+          class="pa-3"
+          rounded="lg"
+        >
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Scan By City</h3>
+              <h3 class="font-weight-medium">
+                Scan By City
+              </h3>
             </div>
           </div>
           <bar-chart
@@ -362,10 +388,15 @@ onMounted(async () => {
 
     <v-row>
       <v-col :cols="12">
-        <v-sheet class="pa-3" rounded="lg">
+        <v-sheet
+          class="pa-3"
+          rounded="lg"
+        >
           <div class="d-flex justify-space-between align-center mb-2 mb-md-4">
             <div>
-              <h3 class="font-weight-medium">Scan By Country</h3>
+              <h3 class="font-weight-medium">
+                Scan By Country
+              </h3>
             </div>
           </div>
           <bar-chart

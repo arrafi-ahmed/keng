@@ -45,9 +45,19 @@ const handleSubmitResetPassword = async () => {
 
 <template>
   <v-container class="fill-height">
-    <v-row align="center" justify="center">
-      <v-col cols="12" md="5">
-        <page-title justify="center" title="Reset Password" title-col="auto" />
+    <v-row
+      align="center"
+      justify="center"
+    >
+      <v-col
+        cols="12"
+        md="5"
+      >
+        <page-title
+          justify="center"
+          title="Reset Password"
+          title-col="auto"
+        />
         <v-card
           class="mx-auto pa-2 pa-md-5 my-2 my-md-5"
           elevation="4"
@@ -97,7 +107,12 @@ const handleSubmitResetPassword = async () => {
                   Sign in
                 </div>
                 <v-spacer />
-                <v-btn color="primary" type="submit">Submit</v-btn>
+                <v-btn
+                  color="primary"
+                  type="submit"
+                >
+                  Submit
+                </v-btn>
               </div>
             </v-form>
           </v-card-text>

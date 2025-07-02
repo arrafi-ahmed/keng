@@ -16,8 +16,17 @@ const { justify, text, variant, cols, sm, md, lg, xl, closable, customClass } =
 
 <template>
   <v-container>
-    <v-row :class="`${customClass} text-wrap`" :justify="justify">
-      <v-col :cols="cols" :lg="lg" :md="md" :sm="sm" :xl="xl">
+    <v-row
+      :class="`${customClass} text-wrap`"
+      :justify="justify"
+    >
+      <v-col
+        :cols="cols"
+        :lg="lg"
+        :md="md"
+        :sm="sm"
+        :xl="xl"
+      >
         <v-alert
           :closable="closable"
           :text="text"
