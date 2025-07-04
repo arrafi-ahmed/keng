@@ -80,234 +80,249 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     const extractTo = path.join(PUBLIC_DIR, "tmp", uuidv4());
     await fs.mkdir(extractTo, {recursive: true});
 
-    // Extract ZIP
-    await fsSync
-        .createReadStream(zipFile.path)
-        .pipe(unzipper.Extract({path: extractTo}))
-        .promise();
-
-    // Parse Excel using ExcelJS
-    const sheetPath = path.join(extractTo, "products.xlsx");
-    const workbook = new ExcelJS.Workbook();
-
     try {
-        await workbook.xlsx.readFile(sheetPath);
-    } catch (err) {
-        throw new Error("Invalid Zip file structure. Please follow import instructions!");
-    }
-    const worksheet = workbook.worksheets[0];
+        // Extract ZIP
+        await fsSync
+            .createReadStream(zipFile.path)
+            .pipe(unzipper.Extract({path: extractTo}))
+            .promise();
 
-    const headers = worksheet.getRow(1).values.slice(1); // ignore first undefined
-    const rows = [];
+        // Parse Excel using ExcelJS
+        const sheetPath = path.join(extractTo, "products.xlsx");
+        const workbook = new ExcelJS.Workbook();
 
-    worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return;
-        const values = row.values.slice(1); // 1-based index
-        const rowObj = Object.fromEntries(
-            headers.map((h, i) => [h, values[i] || ""]),
-        );
-        rows.push(rowObj);
-    });
+        try {
+            await workbook.xlsx.readFile(sheetPath);
+        } catch (err) {
+            throw new Error("Invalid Zip file structure. Please follow import instructions!");
+        }
+        const worksheet = workbook.worksheets[0];
 
-    const now = new Date().toISOString();
-    const productValues = [];
-    const identityValues = [];
-    const imageValues = [];
-    const fileValues = [];
-    const filenamesMap = new Map()
+        const headers = worksheet.getRow(1).values.slice(1); // ignore first undefined
+        const rows = [];
 
-    function addToMap(key, value) {
-        if (!filenamesMap.has(key)) filenamesMap.set(key, []);
-        filenamesMap.get(key).push(value);
-    }
-
-    for (const row of rows) {
-        const {
-            name,
-            description,
-            price,
-            identities,
-            images,
-            manuals,
-            certificates,
-        } = row;
-
-        const identityList = (identities || "")
-            .split(",")
-            .map((i) => i.trim())
-            .filter(Boolean);
-
-        if (!identityList.length) continue;
-
-        const existingRows = await productService.getProductIdentities({
-            payload: {ids: identityList},
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return;
+            const values = row.values.slice(1); // 1-based index
+            const rowObj = Object.fromEntries(
+                headers.map((h, i) => [h, values[i] || ""]),
+            );
+            rows.push(rowObj);
         });
 
-        const existingIdentityNos = new Set(existingRows.map((r) => r.identityNo));
-        const newIdentityNos = identityList.filter(
-            (id) => !existingIdentityNos.has(id),
-        );
-        if (!newIdentityNos.length) {
-            console.log('import skipped: ', name, ' - no new identities')
-            continue;
+        const now = new Date().toISOString();
+        const productValues = [];
+        const identityValues = [];
+        const imageValues = [];
+        const fileValues = [];
+        const filenamesMap = new Map()
+
+        function addToMap(key, value) {
+            if (!filenamesMap.has(key)) filenamesMap.set(key, []);
+            filenamesMap.get(key).push(value);
         }
 
-        const productUuid = uuidv4();
-        productValues.push({
-            uuid: productUuid,
-            name,
-            description,
-            price: parseFloat(price || 0),
-            userId,
-            createdAt: now,
-            availableStock: newIdentityNos.length,
-        });
+        for (const row of rows) {
+            const {
+                name,
+                description,
+                price,
+                identities,
+                images,
+                manuals,
+                certificates,
+            } = row;
 
-        for (const id of newIdentityNos) {
-            identityValues.push({
-                uuid: uuidv4(),
-                identityNo: id,
-                identityType: 10,
-                isAvailable: true,
+            const identityList = (identities || "")
+                .split(",")
+                .map((i) => i.trim())
+                .filter(Boolean);
+
+            if (!identityList.length) continue;
+
+            const existingRows = await productService.getProductIdentities({
+                payload: {ids: identityList},
+            });
+
+            const existingIdentityNos = new Set(existingRows.map((r) => r.identityNo));
+            const newIdentityNos = identityList.filter(
+                (id) => !existingIdentityNos.has(id),
+            );
+            if (!newIdentityNos.length) {
+                console.log('import skipped: ', name, ' - no new identities')
+                continue;
+            }
+
+            const productUuid = uuidv4();
+            productValues.push({
+                uuid: productUuid,
+                name,
+                description,
+                price: parseFloat(price || 0),
+                userId,
                 createdAt: now,
-                productUuid,
+                availableStock: newIdentityNos.length,
             });
+
+            for (const id of newIdentityNos) {
+                identityValues.push({
+                    uuid: uuidv4(),
+                    identityNo: id,
+                    identityType: 10,
+                    isAvailable: true,
+                    createdAt: now,
+                    productUuid,
+                });
+            }
+
+            (images || "")
+                .split(",")
+                .map((f) => f.trim())
+                .filter(Boolean)
+                .forEach((f, i) => {
+                    const relativeKey = `${path.join(getConfigByFieldname('productImages').foldername, f)}`;
+                    const ext = path.extname(f);
+                    const newFileName = generateFilename({
+                        prefix: getConfigByFieldname('productImages').fieldname,
+                        ext
+                    });
+                    imageValues.push({
+                        filename: newFileName,
+                        sortOrder: i + 1,
+                        productUuid,
+                    });
+                    addToMap(relativeKey, newFileName);
+                });
+
+            (certificates || "")
+                .split(",")
+                .map((f) => f.trim())
+                .filter(Boolean)
+                .forEach((f) => {
+                    const relativeKey = `${path.join(getConfigByFieldname('productCertificates').foldername, f)}`;
+                    const ext = path.extname(f);
+                    const newFileName = generateFilename({
+                        prefix: getConfigByFieldname('productCertificates').fieldname,
+                        ext
+                    });
+                    fileValues.push({
+                        filename: newFileName,
+                        fileType: 10,
+                        productUuid,
+                    });
+                    addToMap(relativeKey, newFileName);
+                });
+
+            (manuals || "")
+                .split(",")
+                .map((f) => f.trim())
+                .filter(Boolean)
+                .forEach((f) => {
+                    const relativeKey = `${path.join(getConfigByFieldname('productManuals').foldername, f)}`;
+                    const ext = path.extname(f);
+                    const newFileName = generateFilename({
+                        prefix: getConfigByFieldname('productManuals').fieldname,
+                        ext
+                    });
+                    fileValues.push({
+                        filename: newFileName,
+                        fileType: 11,
+                        productUuid,
+                    });
+                    addToMap(relativeKey, newFileName);
+                });
         }
 
-        (images || "")
-            .split(",")
-            .map((f) => f.trim())
-            .filter(Boolean)
-            .forEach((f, i) => {
-                const relativeKey = `${path.join(getConfigByFieldname('productImages').foldername, f)}`;
-                const ext = path.extname(f);
-                const newFileName = generateFilename({prefix: getConfigByFieldname('productImages').fieldname, ext});
-                imageValues.push({
-                    filename: newFileName,
-                    sortOrder: i + 1,
-                    productUuid,
-                });
-                addToMap(relativeKey, newFileName);
-            });
+        let savedProducts = [];
+        if (productValues.length) {
+            savedProducts = await sql`
+                insert into products ${sql(productValues)} returning *`;
+        } else {
+            console.log('import skipped: ', 'no new products')
+            return {insertCount: 0};
+        }
 
-        (certificates || "")
-            .split(",")
-            .map((f) => f.trim())
-            .filter(Boolean)
-            .forEach((f) => {
-                const relativeKey = `${path.join(getConfigByFieldname('productCertificates').foldername, f)}`;
-                const ext = path.extname(f);
-                const newFileName = generateFilename({
-                    prefix: getConfigByFieldname('productCertificates').fieldname,
-                    ext
-                });
-                fileValues.push({
-                    filename: newFileName,
-                    fileType: 10,
-                    productUuid,
-                });
-                addToMap(relativeKey, newFileName);
-            });
+        if (savedProducts.length) {
+            const folders = [
+                getConfigByFieldname('productImages').foldername,
+                getConfigByFieldname('productCertificates').foldername,
+                getConfigByFieldname('productManuals').foldername
+            ]
 
-        (manuals || "")
-            .split(",")
-            .map((f) => f.trim())
-            .filter(Boolean)
-            .forEach((f) => {
-                const relativeKey = `${path.join(getConfigByFieldname('productManuals').foldername, f)}`;
-                const ext = path.extname(f);
-                const newFileName = generateFilename({prefix: getConfigByFieldname('productManuals').fieldname, ext});
-                fileValues.push({
-                    filename: newFileName,
-                    fileType: 11,
-                    productUuid,
-                });
-                addToMap(relativeKey, newFileName);
-            });
-    }
+            for (const folder of folders) {
+                const source = path.join(extractTo, folder);
+                const target = path.join(PUBLIC_DIR, folder);
+                try {
+                    const files = await fs.readdir(source);
+                    for (const file of files) {
+                        const relativeKey = `${path.join(folder, file)}`;
 
-    let savedProducts = [];
-    if (productValues.length) {
-        savedProducts = await sql`
-            insert into products ${sql(productValues)} returning *`;
-    } else {
-        console.log('import skipped: ', 'no new products')
-        return {insertCount: 0};
-    }
-    console.log(1, filenamesMap.size, filenamesMap.entries())
-
-    if (savedProducts.length) {
-        const folders = [
-            getConfigByFieldname('productImages').foldername,
-            getConfigByFieldname('productCertificates').foldername,
-            getConfigByFieldname('productManuals').foldername
-        ]
-
-        for (const folder of folders) {
-            const source = path.join(extractTo, folder);
-            const target = path.join(PUBLIC_DIR, folder);
-            try {
-                const files = await fs.readdir(source);
-                for (const file of files) {
-                    const relativeKey = `${path.join(folder, file)}`;
-
-                    const newFileNames = filenamesMap.get(relativeKey); // might contain duplicate filenames
-                    if (Array.isArray(newFileNames) && newFileNames.length) {
-                        for (const newFileName of newFileNames) {
-                            await fs.copyFile(
-                                path.join(source, file),
-                                path.join(target, newFileName)
-                            );
+                        const newFileNames = filenamesMap.get(relativeKey); // might contain duplicate filenames
+                        if (Array.isArray(newFileNames) && newFileNames.length) {
+                            for (const newFileName of newFileNames) {
+                                await fs.copyFile(
+                                    path.join(source, file),
+                                    path.join(target, newFileName)
+                                );
+                            }
+                        } else {
+                            console.warn(`⚠️ Skipping ${relativeKey} — no mapping found`);
+                            continue;
                         }
-                    } else {
-                        console.warn(`⚠️ Skipping ${relativeKey} — no mapping found`);
-                        continue;
                     }
-
-                    console.log(2, relativeKey, file, newFileNames)
+                } catch (error) {
+                    console.error(error)
                 }
-            } catch (error) {
-                console.error(error)
             }
         }
+
+        const uuidToId = Object.fromEntries(savedProducts.map((p) => [p.uuid, p.id]));
+
+        const identitiesFinal = identityValues.map((i) => ({
+            uuid: i.uuid,
+            identityNo: i.identityNo,
+            identityType: i.identityType,
+            isAvailable: i.isAvailable,
+            createdAt: i.createdAt,
+            productId: uuidToId[i.productUuid],
+        }));
+        if (identitiesFinal.length) {
+            await sql`insert into product_identities ${sql(identitiesFinal)}`;
+        }
+
+        const imagesFinal = imageValues.map((i) => ({
+            filename: i.filename,
+            sortOrder: i.sortOrder,
+            productId: uuidToId[i.productUuid],
+        }));
+        if (imagesFinal.length) {
+            await sql`insert into product_images ${sql(imagesFinal)}`;
+        }
+
+        const filesFinal = fileValues.map((f) => ({
+            filename: f.filename,
+            fileType: f.fileType,
+            productId: uuidToId[f.productUuid],
+        }));
+        if (filesFinal.length) {
+            await sql`insert into product_files ${sql(filesFinal)}`;
+        }
+
+        await fs.rm(extractTo, {recursive: true, force: true});
+        await fs.unlink(zipFile.path);
+
+        return {insertCount: savedProducts.length};
+    } catch (err) {
+        console.error("❌ Import failed:", err.message);
+        throw err;
+    } finally {
+        try {
+            await fs.rm(extractTo, {recursive: true, force: true});
+            await fs.unlink(zipFile.path);
+        } catch (cleanupError) {
+            console.error("⚠️ Cleanup failed:", cleanupError.message);
+        }
     }
-
-    const uuidToId = Object.fromEntries(savedProducts.map((p) => [p.uuid, p.id]));
-
-    const identitiesFinal = identityValues.map((i) => ({
-        uuid: i.uuid,
-        identityNo: i.identityNo,
-        identityType: i.identityType,
-        isAvailable: i.isAvailable,
-        createdAt: i.createdAt,
-        productId: uuidToId[i.productUuid],
-    }));
-    if (identitiesFinal.length) {
-        await sql`insert into product_identities ${sql(identitiesFinal)}`;
-    }
-
-    const imagesFinal = imageValues.map((i) => ({
-        filename: i.filename,
-        sortOrder: i.sortOrder,
-        productId: uuidToId[i.productUuid],
-    }));
-    if (imagesFinal.length) {
-        await sql`insert into product_images ${sql(imagesFinal)}`;
-    }
-
-    const filesFinal = fileValues.map((f) => ({
-        filename: f.filename,
-        fileType: f.fileType,
-        productId: uuidToId[f.productUuid],
-    }));
-    if (filesFinal.length) {
-        await sql`insert into product_files ${sql(filesFinal)}`;
-    }
-
-    await fs.rm(extractTo, {recursive: true, force: true});
-    await fs.unlink(zipFile.path);
-
-    return {insertCount: savedProducts.length};
 };
 
 exports.bulkExport = async ({userId, writable}) => {
