@@ -116,6 +116,11 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
     const fileValues = [];
     const filenamesMap = new Map()
 
+    function addToMap(key, value) {
+        if (!filenamesMap.has(key)) filenamesMap.set(key, []);
+        filenamesMap.get(key).push(value);
+    }
+
     for (const row of rows) {
         const {
             name,
@@ -182,7 +187,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
                     sortOrder: i + 1,
                     productUuid,
                 });
-                filenamesMap.set(relativeKey, newFileName);
+                addToMap(relativeKey, newFileName);
             });
 
         (certificates || "")
@@ -201,7 +206,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
                     fileType: 10,
                     productUuid,
                 });
-                filenamesMap.set(relativeKey, newFileName);
+                addToMap(relativeKey, newFileName);
             });
 
         (manuals || "")
@@ -217,7 +222,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
                     fileType: 11,
                     productUuid,
                 });
-                filenamesMap.set(relativeKey, newFileName);
+                addToMap(relativeKey, newFileName);
             });
     }
 
@@ -229,6 +234,7 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
         console.log('import skipped: ', 'no new products')
         return {insertCount: 0};
     }
+    console.log(1, filenamesMap.size, filenamesMap.entries())
 
     if (savedProducts.length) {
         const folders = [
@@ -244,17 +250,21 @@ exports.bulkImportProduct = async ({zipFile, userId}) => {
                 const files = await fs.readdir(source);
                 for (const file of files) {
                     const relativeKey = `${path.join(folder, file)}`;
-                    const newFileName = filenamesMap.get(relativeKey);
 
-                    if (!newFileName) {
+                    const newFileNames = filenamesMap.get(relativeKey); // might contain duplicate filenames
+                    if (Array.isArray(newFileNames) && newFileNames.length) {
+                        for (const newFileName of newFileNames) {
+                            await fs.copyFile(
+                                path.join(source, file),
+                                path.join(target, newFileName)
+                            );
+                        }
+                    } else {
                         console.warn(`⚠️ Skipping ${relativeKey} — no mapping found`);
                         continue;
                     }
 
-                    await fs.copyFile(
-                        path.join(source, file),
-                        path.join(target, newFileName)
-                    );
+                    console.log(2, relativeKey, file, newFileNames)
                 }
             } catch (error) {
                 console.error(error)

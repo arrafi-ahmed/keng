@@ -3,11 +3,6 @@ const CustomError = require("../model/CustomError");
 const {sql} = require("../db");
 const {hash, compare} = require("bcrypt");
 const {v4: uuidv4} = require("uuid");
-const {
-    generatePassResetContent,
-    appInfo,
-    VUE_BASE_URL,
-} = require("../helpers/util");
 const {sendMail, sendPasswordResetEmail} = require("./email");
 
 const generateAuthData = (result) => {
@@ -23,6 +18,7 @@ const generateAuthData = (result) => {
     }
     return {token, currentUser};
 };
+
 // role 10 = admin, 20 = customer
 exports.save = async ({payload}) => {
     const hashedPassword = await hash(payload.password, 10);

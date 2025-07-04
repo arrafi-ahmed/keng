@@ -13,16 +13,12 @@ definePage({
   },
 });
 
-const { mobile } = useDisplay();
+const { xs } = useDisplay();
 const router = useRouter();
 const userInit = {
   name: null,
   email: null,
   password: null,
-  // role:
-  //   route.params.role === "team"
-  //     ? "team_manager"
-  //       : null,
 };
 const user = reactive({ ...userInit });
 const confirmPassword = ref(null);
@@ -148,7 +144,7 @@ onMounted(() => {
 
               <!-- Register Button -->
               <v-btn
-                :density="mobile ? 'comfortable' : 'default'"
+                :density="xs ? 'comfortable' : 'default'"
                 block
                 class="mt-2 mt-md-7"
                 color="primary"

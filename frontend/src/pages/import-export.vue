@@ -1,10 +1,10 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useStore } from "vuex";
-import { useDisplay } from "vuetify";
+import {ref} from "vue";
+import {useRouter} from "vue-router";
+import {useStore} from "vuex";
+import {useDisplay} from "vuetify";
 import PageTitle from "@/components/PageTitle.vue";
-import { getClientPublicImageUrl } from "@/others/util.js";
+import {getClientPublicImageUrl} from "@/others/util.js";
 
 definePage({
   name: "importExport", // Set the route name to 'signin'
@@ -15,7 +15,7 @@ definePage({
   },
 });
 
-const { mobile } = useDisplay();
+const {mobile} = useDisplay();
 const store = useStore();
 const router = useRouter();
 
@@ -40,7 +40,7 @@ const handleWarrantyImport = async () => {
   const formData = new FormData();
   formData.append("warrantyImportExcel", warrantyImportExcel.value);
   store.dispatch("product/bulkImportWarranty", formData).then((result) => {
-    router.push({ name: "products" });
+    router.push({name: "products"});
   });
 };
 
@@ -56,7 +56,7 @@ const handleProductImport = async () => {
   const formData = new FormData();
   formData.append("productImportZip", productImportZip.value);
   store.dispatch("product/bulkImportProduct", formData).then((result) => {
-    router.push({ name: "products" });
+    router.push({name: "products"});
   });
 };
 const handleExport = async () => {
@@ -214,7 +214,7 @@ const handleExport = async () => {
       <v-card-title>How to Prepare Your Import Files</v-card-title>
       <v-card-text class="text-pre-wrap">
         <ul class="mx-3 import-instruction">
-          <li>Ensure all filenames are unique to avoid conflicts.</li>
+          <!--          <li>Ensure all filenames are unique to avoid conflicts.</li>-->
           <li>
             <div class="mb-3">
               Organize your ZIP file with the following folder structure:
